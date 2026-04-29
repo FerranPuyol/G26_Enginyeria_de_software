@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ca" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Price Comparator</title>
+ 
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+ 
+  <!-- Google Fonts: Syne (display) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+ 
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+ 
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50:  '#f0fdf6',
+              100: '#dcfce9',
+              200: '#bbf7d2',
+              300: '#86efb0',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            },
+            ink: {
+              DEFAULT: '#0d1117',
+              soft:    '#1c2333',
+              muted:   '#3a4455',
+            },
+            surface: {
+              DEFAULT: '#f8fafc',
+              card:    '#ffffff',
+              dark:    '#111827',
+            }
+          },
+          boxShadow: {
+            'glow-green': '0 0 32px 4px rgba(34,197,94,0.18)',
+            'card': '0 2px 20px 0 rgba(0,0,0,0.07)',
+          }
+        }
+      }
+    }
+  </script>
+ 
+  <style>
+    /* ── Base ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: #f8fafc;
+      color: #0d1117;
+      min-height: 100vh;
+    }
+ 
+    /* ── Nav glass effect ──────────────────────────────── */
+    .nav-glass {
+      background: rgba(248,250,252,0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(34,197,94,0.10);
+    }
+ 
+    /* ── Nav link active pill ─────────────────────────── */
+    .nav-link {
+      position: relative;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+      color: #3a4455;
+      padding: 6px 14px;
+      border-radius: 999px;
+      transition: color 0.2s, background 0.2s;
+      cursor: pointer;
+    }
+    .nav-link:hover { color: #16a34a; background: rgba(34,197,94,0.06); }
+    .nav-link.active {
+      color: #ffffff;
+      background: #16a34a;
+      box-shadow: 0 2px 12px rgba(22,163,74,0.30);
+    }
+ 
+    /* ── View transitions ─────────────────────────────── */
+    .view {
+      display: none;
+      animation: fadeUp 0.35s ease both;
+    }
+    .view.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+ 
+    /* ── Gradient heading ─────────────────────────────── */
+    .gradient-text {
+      background: linear-gradient(135deg, #16a34a 0%, #4ade80 60%, #86efb0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+ 
+    /* ── Bento card ───────────────────────────────────── */
+    .bento-card {
+      background: #ffffff;
+      border-radius: 20px;
+      border: 1px solid rgba(34,197,94,0.10);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+      transition: box-shadow 0.25s, transform 0.25s;
+    }
+    .bento-card:hover {
+      box-shadow: 0 8px 32px rgba(34,197,94,0.14);
+      transform: translateY(-3px);
+    }
+ 
+    /* ── Placeholder badge ────────────────────────────── */
+    .placeholder-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #16a34a;
+      background: rgba(34,197,94,0.10);
+      border: 1px dashed rgba(34,197,94,0.35);
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+ 
+    /* ── Hero background noise ────────────────────────── */
+    .hero-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 60% -10%, rgba(34,197,94,0.13) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 100% 80%, rgba(74,222,128,0.08) 0%, transparent 60%),
+        #f8fafc;
+    }
+ 
+    /* ── Mobile menu ──────────────────────────────────── */
+    #mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s;
+      opacity: 0;
+    }
+    #mobile-menu.open { max-height: 320px; opacity: 1; }
+ 
+    /* ── Chat bubble placeholder ──────────────────────── */
+    .chat-bubble-out {
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+      color: white;
+      border-radius: 18px 18px 4px 18px;
+    }
+    .chat-bubble-in {
+      background: #ffffff;
+      border: 1px solid rgba(34,197,94,0.15);
+      border-radius: 18px 18px 18px 4px;
+    }
+ 
+    /* ── Semàfor dots ─────────────────────────────────── */
+    .dot-green  { width:12px; height:12px; border-radius:50%; background:#22c55e; box-shadow:0 0 6px rgba(34,197,94,0.5); }
+    .dot-yellow { width:12px; height:12px; border-radius:50%; background:#facc15; box-shadow:0 0 6px rgba(250,204,21,0.5); }
+    .dot-red    { width:12px; height:12px; border-radius:50%; background:#f87171; box-shadow:0 0 6px rgba(248,113,113,0.5); }
+  </style>
+</head>
+ 
+<body>
+ 
+  <!-- ══════════════════════════════════════════════
+       NAVBAR — Fixed, glass, responsive
+  ════════════════════════════════════════════════ -->
+  <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+ 
+        <!-- Logo -->
+        <button onclick="showView('inici')" class="flex items-center gap-2 group">
+          <div class="w-8 h-8 rounded-xl bg-brand-500 flex items-center justify-center shadow-glow-green group-hover:scale-105 transition-transform">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 12 L8 4 L13 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5.5 9 h5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="font-display font-800 text-base text-ink leading-none">Smart<span class="text-brand-500">Price</span></span>
+        </button>
+ 
+        <!-- Desktop nav links -->
+        <div class="hidden md:flex items-center gap-1">
+          <button class="nav-link active" id="nav-inici"       onclick="showView('inici')">Inici</button>
+          <button class="nav-link"        id="nav-pressupost"  onclick="showView('pressupost')">El meu Pressupost</button>
+          <button class="nav-link"        id="nav-comparador"  onclick="showView('comparador')">Comparador</button>
+          <button class="nav-link"        id="nav-assessor"    onclick="showView('assessor')">Assessor IA</button>
+        </div>
+ 
+        <!-- CTA desktop -->
+        <div class="hidden md:flex items-center gap-3">
+          <button class="font-display font-600 text-sm text-ink-muted hover:text-ink transition-colors px-3 py-1.5">Entrar</button>
+          <button class="font-display font-700 text-sm text-white bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded-full shadow-glow-green transition-all hover:scale-105">
+            Registra't gratis
+          </button>
+        </div>
+ 
+        <!-- Hamburger (mobile) -->
+        <button id="hamburger" onclick="toggleMenu()" class="md:hidden p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-brand-50 transition-colors" aria-label="Menú">
+          <i data-lucide="menu" class="w-5 h-5" id="icon-open"></i>
+          <i data-lucide="x"    class="w-5 h-5 hidden" id="icon-close"></i>
+        </button>
+      </div>
+    </div>
+ 
+    <!-- Mobile dropdown menu -->
+    <div id="mobile-menu" class="md:hidden border-t border-brand-100/40">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1">
+        <button class="nav-link text-left w-full active" id="mnav-inici"      onclick="showView('inici');toggleMenu()">Inici</button>
+        <button class="nav-link text-left w-full"        id="mnav-pressupost" onclick="showView('pressupost');toggleMenu()">El meu Pressupost</button>
+        <button class="nav-link text-left w-full"        id="mnav-comparador" onclick="showView('comparador');toggleMenu()">Comparador</button>
+        <button class="nav-link text-left w-full"        id="mnav-assessor"   onclick="showView('assessor');toggleMenu()">Assessor IA</button>
+        <div class="flex gap-2 pt-2 pb-1">
+          <button class="flex-1 font-display font-600 text-sm text-ink-muted border border-ink-muted/20 rounded-full py-2 hover:border-brand-400 transition-colors">Entrar</button>
+          <button class="flex-1 font-display font-700 text-sm text-white bg-brand-500 rounded-full py-2 hover:bg-brand-600 transition-colors">Registra't</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+ 
+  <!-- ══════════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════════════ -->
+  <main class="pt-16 min-h-screen">
+ 
+    <!-- ─────────────────────────────────────────────
+         VISTA 1: INICI (Hero + Bento grid)
+    ───────────────────────────────────────────── -->
+    <section id="view-inici" class="view active">
+ 
+      <!-- Hero -->
+      <div class="hero-bg px-4 sm:px-6 pt-20 pb-16">
+        <div class="max-w-4xl mx-auto text-center">
+ 
+          <!-- Pill badge -->
+          <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-full px-4 py-1.5 mb-8">
+            <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+            <span class="font-display font-700 text-xs text-brand-700 tracking-wider uppercase">Fet per a universitaris · Barcelona</span>
+          </div>
+ 
+          <!-- Headline -->
+          <h1 class="font-display font-800 text-5xl sm:text-6xl md:text-7xl leading-[1.05] tracking-tight text-ink mb-6">
+            Compara els teus<br/>
+            <span class="gradient-text">preus i estalvia</span><br/>
+            a final de mes
+          </h1>
+ 
+          <p class="font-body text-lg sm:text-xl text-ink-muted max-w-xl mx-auto mb-10 leading-relaxed">
+            Controla el teu pressupost estudiantil, compara preus de supermercat en temps real
+            i rep consells intel·ligents per arribar a final de mes sense estrès.
+          </p>
+ 
+          <!-- CTA buttons -->
+          <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <button onclick="showView('pressupost')"
+              class="w-full sm:w-auto font-display font-700 text-white bg-brand-500 hover:bg-brand-600 px-8 py-3.5 rounded-full text-base shadow-glow-green transition-all hover:scale-105 flex items-center justify-center gap-2">
+              <i data-lucide="rocket" class="w-4 h-4"></i>
+              Comença ara — és gratis
+            </button>
+            <button onclick="showView('comparador')"
+              class="w-full sm:w-auto font-display font-600 text-ink border border-ink/10 hover:border-brand-400 bg-white/70 px-8 py-3.5 rounded-full text-base transition-all hover:text-brand-600 flex items-center justify-center gap-2">
+              <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+              Veure el Comparador
+            </button>
+          </div>
+ 
+          <!-- Social proof -->
+          <div class="flex items-center justify-center gap-6 mt-12 opacity-60">
+            <div class="text-center">
+              <p class="font-display font-800 text-2xl text-ink">3.2k+</p>
+              <p class="font-body text-xs text-ink-muted">estudiants</p>
+            </div>
+            <div class="w-px h-8 bg-ink-muted/20"></div>
+            <div class="text-center">
+              <p class="font-display font-800 text-2xl text-ink">€47</p>
+              <p class="font-body text-xs text-ink-muted">estalvi mig/mes</p>
+            </div>
+            <div class="w-px h-8 bg-ink-muted/20"></div>
+            <div class="text-center">
+              <p class="font-display font-800 text-2xl text-ink">98%</p>
+              <p class="font-body text-xs text-ink-muted">satisfacció</p>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Bento grid — features -->
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+        <p class="font-display font-700 text-sm text-brand-600 uppercase tracking-widest text-center mb-3">Funcionalitats principals</p>
+        <h2 class="font-display font-800 text-3xl sm:text-4xl text-ink text-center mb-12">Tot el que necessites,<br/>en un sol lloc</h2>
+ 
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+ 
+          <!-- Card 1 -->
+          <div class="bento-card p-7 lg:col-span-2">
+            <div class="w-11 h-11 rounded-2xl bg-brand-50 flex items-center justify-center mb-5">
+              <i data-lucide="trending-down" class="w-5 h-5 text-brand-500"></i>
+            </div>
+            <h3 class="font-display font-700 text-xl text-ink mb-2">Comparador de preus en temps real</h3>
+            <p class="font-body text-sm text-ink-muted leading-relaxed">
+              Consulta i compara els preus dels supermercats del teu barri (Mercadona, Lidl, Bonpreu…) i descobreix on et surt més a compte fer la compra setmanal.
+            </p>
+            <span class="placeholder-badge mt-5 inline-flex">
+              <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
+            </span>
+          </div>
+ 
+          <!-- Card 2 -->
+          <div class="bento-card p-7 bg-ink flex flex-col justify-between" style="background:#0d1117;">
+            <div class="w-11 h-11 rounded-2xl bg-brand-500/15 flex items-center justify-center mb-5">
+              <i data-lucide="wallet" class="w-5 h-5 text-brand-400"></i>
+            </div>
+            <div>
+              <h3 class="font-display font-700 text-xl text-white mb-2">Control del pressupost</h3>
+              <p class="font-body text-sm text-white/50 leading-relaxed">Defineix ingressos i despeses i veu en temps real fins on arriben els teus euros.</p>
+            </div>
+            <span class="placeholder-badge mt-5" style="color:#4ade80;background:rgba(74,222,128,0.10);border-color:rgba(74,222,128,0.3);">
+              <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
+            </span>
+          </div>
+ 
+          <!-- Card 3 -->
+          <div class="bento-card p-7">
+            <div class="w-11 h-11 rounded-2xl bg-amber-50 flex items-center justify-center mb-5">
+              <i data-lucide="bot" class="w-5 h-5 text-amber-500"></i>
+            </div>
+            <h3 class="font-display font-700 text-xl text-ink mb-2">Assessor IA</h3>
+            <p class="font-body text-sm text-ink-muted leading-relaxed">
+              Pregunta-li al teu assistent personal quins productes escollir o com optimitzar la teva llista de la compra.
+            </p>
+            <span class="placeholder-badge mt-5">
+              <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
+            </span>
+          </div>
+ 
+          <!-- Card 4 -->
+          <div class="bento-card p-7 sm:col-span-2 lg:col-span-2">
+            <div class="w-11 h-11 rounded-2xl bg-violet-50 flex items-center justify-center mb-5">
+              <i data-lucide="bell" class="w-5 h-5 text-violet-500"></i>
+            </div>
+            <h3 class="font-display font-700 text-xl text-ink mb-2">Alertes d'oferta personalitzades</h3>
+            <p class="font-body text-sm text-ink-muted leading-relaxed">
+              Rep una notificació quan el producte que compres habitualment baixi de preu al supermercat més proper. Mai et perdis una oferta.
+            </p>
+            <span class="placeholder-badge mt-5">
+              <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
+            </span>
+          </div>
+ 
+        </div>
+      </div>
+    </section>
+ 
+ 
+    <!-- ─────────────────────────────────────────────
+         VISTA 2: EL MEU PRESSUPOST
+    ───────────────────────────────────────────── -->
+    <section id="view-pressupost" class="view">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 py-20">
+ 
+        <div class="mb-10">
+          <span class="placeholder-badge mb-4">
+            <i data-lucide="construction" class="w-3 h-3"></i> En construcció
+          </span>
+          <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">El meu Pressupost</h1>
+          <p class="font-body text-lg text-ink-muted">Configura els teus ingressos mensuals i despeses fixes per obtenir recomanacions personalitzades.</p>
+        </div>
+ 
+        <!-- Placeholder form shell -->
+        <div class="bento-card p-8 space-y-8">
+ 
+          <!-- Ingressos -->
+          <div>
+            <div class="flex items-center gap-2 mb-5">
+              <i data-lucide="arrow-down-circle" class="w-5 h-5 text-brand-500"></i>
+              <h2 class="font-display font-700 text-lg text-ink">Ingressos</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Beca / Ajuda familiar</label>
+                <div class="h-11 rounded-xl border-2 border-dashed border-brand-200 bg-brand-50/50 flex items-center px-4">
+                  <span class="text-sm text-brand-400 font-body">ex: 600 €/mes</span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Feina a temps parcial</label>
+                <div class="h-11 rounded-xl border-2 border-dashed border-brand-200 bg-brand-50/50 flex items-center px-4">
+                  <span class="text-sm text-brand-400 font-body">ex: 400 €/mes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+ 
+          <hr class="border-ink-muted/10"/>
+ 
+          <!-- Despeses -->
+          <div>
+            <div class="flex items-center gap-2 mb-5">
+              <i data-lucide="arrow-up-circle" class="w-5 h-5 text-red-400"></i>
+              <h2 class="font-display font-700 text-lg text-ink">Despeses fixes</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Lloguer / Residència</label>
+                <div class="h-11 rounded-xl border-2 border-dashed border-red-200 bg-red-50/50 flex items-center px-4">
+                  <span class="text-sm text-red-300 font-body">ex: 350 €/mes</span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Transport</label>
+                <div class="h-11 rounded-xl border-2 border-dashed border-red-200 bg-red-50/50 flex items-center px-4">
+                  <span class="text-sm text-red-300 font-body">ex: 50 €/mes</span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Alimentació</label>
+                <div class="h-11 rounded-xl border-2 border-dashed border-red-200 bg-red-50/50 flex items-center px-4">
+                  <span class="text-sm text-red-300 font-body">ex: 200 €/mes</span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Oci i altres</label>
+                <div class="h-11 rounded-xl border-2 border-dashed border-red-200 bg-red-50/50 flex items-center px-4">
+                  <span class="text-sm text-red-300 font-body">ex: 80 €/mes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+ 
+          <hr class="border-ink-muted/10"/>
+ 
+          <!-- Placeholder button -->
+          <div class="flex items-center gap-4">
+            <div class="h-12 flex-1 rounded-full bg-brand-100 border-2 border-dashed border-brand-300 flex items-center justify-center gap-2">
+              <i data-lucide="save" class="w-4 h-4 text-brand-500"></i>
+              <span class="font-display font-700 text-sm text-brand-600">Guardar pressupost — PLACEHOLDER</span>
+            </div>
+          </div>
+ 
+          <p class="text-center text-xs text-ink-muted/60 font-body">
+            📌 Aquesta secció contindrà el formulari real i la lògica de càlcul de balanç mensual.
+          </p>
+        </div>
+      </div>
+    </section>
+ 
+ 
+    <!-- ─────────────────────────────────────────────
+         VISTA 3: DASHBOARD COMPARATIVA
+    ───────────────────────────────────────────── -->
+    <section id="view-comparador" class="view">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-20">
+ 
+        <div class="mb-10">
+          <span class="placeholder-badge mb-4">
+            <i data-lucide="construction" class="w-3 h-3"></i> En construcció
+          </span>
+          <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">Dashboard de Comparativa</h1>
+          <p class="font-body text-lg text-ink-muted">Aquí veuràs gràfics en temps real i semàfors de preus de mercat per a cada categoria de productes.</p>
+        </div>
+ 
+        <!-- Bento grid placeholder dashboard -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+ 
+          <!-- Semàfor card -->
+          <div class="bento-card p-6">
+            <p class="font-display font-600 text-xs text-ink-muted uppercase tracking-widest mb-4">Semàfor de Preus</p>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-body text-sm text-ink">Làctics</span>
+                <div class="flex items-center gap-2"><div class="dot-green"></div><span class="font-display font-700 text-xs text-brand-600">Barat</span></div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-body text-sm text-ink">Pa i cereals</span>
+                <div class="flex items-center gap-2"><div class="dot-yellow"></div><span class="font-display font-700 text-xs text-amber-600">Moderat</span></div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-body text-sm text-ink">Fruita fresca</span>
+                <div class="flex items-center gap-2"><div class="dot-red"></div><span class="font-display font-700 text-xs text-red-500">Car</span></div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-body text-sm text-ink">Proteïnes</span>
+                <div class="flex items-center gap-2"><div class="dot-yellow"></div><span class="font-display font-700 text-xs text-amber-600">Moderat</span></div>
+              </div>
+            </div>
+            <span class="placeholder-badge mt-5">Dades simulades</span>
+          </div>
+ 
+          <!-- Bar chart placeholder -->
+          <div class="bento-card p-6 sm:col-span-2">
+            <p class="font-display font-600 text-xs text-ink-muted uppercase tracking-widest mb-4">Comparació Supermercats — Cistella Tipus</p>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="font-body text-xs text-ink">Mercadona</span>
+                  <span class="font-display font-700 text-xs text-brand-600">€87.40</span>
+                </div>
+                <div class="h-3 rounded-full bg-brand-100 overflow-hidden">
+                  <div class="h-full rounded-full bg-brand-500" style="width:72%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="font-body text-xs text-ink">Lidl</span>
+                  <span class="font-display font-700 text-xs text-brand-600">€74.20</span>
+                </div>
+                <div class="h-3 rounded-full bg-brand-100 overflow-hidden">
+                  <div class="h-full rounded-full bg-brand-500" style="width:61%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="font-body text-xs text-ink">Bonpreu</span>
+                  <span class="font-display font-700 text-xs text-amber-600">€102.80</span>
+                </div>
+                <div class="h-3 rounded-full bg-amber-50 overflow-hidden">
+                  <div class="h-full rounded-full bg-amber-400" style="width:84%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="font-body text-xs text-ink">Aldi</span>
+                  <span class="font-display font-700 text-xs text-brand-600">€69.50</span>
+                </div>
+                <div class="h-3 rounded-full bg-brand-100 overflow-hidden">
+                  <div class="h-full rounded-full bg-brand-400" style="width:57%"></div>
+                </div>
+              </div>
+            </div>
+            <span class="placeholder-badge mt-5">Dades simulades · Gràfics reals aquí</span>
+          </div>
+ 
+          <!-- Estalvi potencial -->
+          <div class="bento-card p-6 bg-ink" style="background:#0d1117;">
+            <p class="font-display font-600 text-xs text-white/40 uppercase tracking-widest mb-3">Estalvi potencial</p>
+            <p class="font-display font-800 text-4xl text-brand-400 mb-1">€32.90</p>
+            <p class="font-body text-sm text-white/50">si compres a Aldi en lloc de Bonpreu</p>
+            <span class="placeholder-badge mt-4" style="color:#4ade80;background:rgba(74,222,128,0.10);border-color:rgba(74,222,128,0.3);">Simulat</span>
+          </div>
+ 
+          <!-- Historial -->
+          <div class="bento-card p-6 sm:col-span-2">
+            <p class="font-display font-600 text-xs text-ink-muted uppercase tracking-widest mb-4">Historial de despesa mensual</p>
+            <!-- Mini sparkline placeholder -->
+            <div class="flex items-end gap-2 h-20 px-2">
+              <div class="flex-1 rounded-t-lg bg-brand-200" style="height:40%"></div>
+              <div class="flex-1 rounded-t-lg bg-brand-300" style="height:60%"></div>
+              <div class="flex-1 rounded-t-lg bg-brand-400" style="height:75%"></div>
+              <div class="flex-1 rounded-t-lg bg-brand-500" style="height:55%"></div>
+              <div class="flex-1 rounded-t-lg bg-brand-300" style="height:45%"></div>
+              <div class="flex-1 rounded-t-lg bg-brand-400 ring-2 ring-brand-500 ring-offset-2" style="height:65%"></div>
+            </div>
+            <div class="flex justify-between mt-2">
+              <span class="font-body text-xs text-ink-muted/60">Nov</span>
+              <span class="font-body text-xs text-ink-muted/60">Des</span>
+              <span class="font-body text-xs text-ink-muted/60">Gen</span>
+              <span class="font-body text-xs text-ink-muted/60">Feb</span>
+              <span class="font-body text-xs text-ink-muted/60">Mar</span>
+              <span class="font-body text-xs text-brand-500 font-600">Abr</span>
+            </div>
+            <span class="placeholder-badge mt-4">Chart.js / Recharts aquí</span>
+          </div>
+ 
+        </div>
+ 
+        <p class="text-center text-xs text-ink-muted/50 font-body">
+          📌 Aquí s'integraran gràfics interactius (Chart.js / Recharts), semàfors de preus en temps real i la cistella de la compra personalitzada.
+        </p>
+      </div>
+    </section>
+ 
+ 
+    <!-- ─────────────────────────────────────────────
+         VISTA 4: ASSESSOR IA
+    ───────────────────────────────────────────── -->
+    <section id="view-assessor" class="view">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 py-20">
+ 
+        <div class="mb-10 text-center">
+          <span class="placeholder-badge mb-4">
+            <i data-lucide="construction" class="w-3 h-3"></i> En construcció
+          </span>
+          <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">Assessor IA</h1>
+          <p class="font-body text-lg text-ink-muted">El teu assistent intel·ligent per optimitzar la compra i el pressupost estudiantil.</p>
+        </div>
+ 
+        <!-- Chat UI placeholder -->
+        <div class="bento-card overflow-hidden">
+ 
+          <!-- Chat header -->
+          <div class="flex items-center gap-3 px-5 py-4 border-b border-ink-muted/10">
+            <div class="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center">
+              <i data-lucide="bot" class="w-4 h-4 text-white"></i>
+            </div>
+            <div>
+              <p class="font-display font-700 text-sm text-ink">SmartPrice Assistant</p>
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
+                <span class="font-body text-xs text-brand-600">En línia</span>
+              </div>
+            </div>
+          </div>
+ 
+          <!-- Chat messages placeholder -->
+          <div class="p-5 space-y-4 min-h-72 bg-surface">
+ 
+            <!-- Bot message -->
+            <div class="flex gap-3 max-w-xs">
+              <div class="w-7 h-7 rounded-full bg-brand-100 flex-shrink-0 flex items-center justify-center mt-1">
+                <i data-lucide="bot" class="w-3 h-3 text-brand-600"></i>
+              </div>
+              <div class="chat-bubble-in px-4 py-3">
+                <p class="font-body text-sm text-ink leading-relaxed">Hola! Soc el teu assessor de compres. Com puc ajudar-te avui?</p>
+              </div>
+            </div>
+ 
+            <!-- User message -->
+            <div class="flex gap-3 justify-end max-w-xs ml-auto">
+              <div class="chat-bubble-out px-4 py-3">
+                <p class="font-body text-sm text-white leading-relaxed">On és més barat comprar arròs a Barcelona?</p>
+              </div>
+            </div>
+ 
+            <!-- Bot response -->
+            <div class="flex gap-3 max-w-sm">
+              <div class="w-7 h-7 rounded-full bg-brand-100 flex-shrink-0 flex items-center justify-center mt-1">
+                <i data-lucide="bot" class="w-3 h-3 text-brand-600"></i>
+              </div>
+              <div class="chat-bubble-in px-4 py-3">
+                <p class="font-body text-sm text-ink leading-relaxed">Segons les dades actuals, <strong>Aldi</strong> i <strong>Lidl</strong> ofereixen el millor preu per kg d'arròs a BCN. T'interessa veure la comparativa completa?</p>
+                <span class="placeholder-badge mt-2 text-xs">Resposta simulada</span>
+              </div>
+            </div>
+ 
+          </div>
+ 
+          <!-- Input bar placeholder -->
+          <div class="px-4 py-4 border-t border-ink-muted/10 bg-white flex items-center gap-3">
+            <div class="flex-1 h-11 rounded-full border-2 border-dashed border-brand-200 bg-brand-50/50 flex items-center px-4">
+              <span class="font-body text-sm text-brand-300">Escriu el teu missatge aquí…</span>
+            </div>
+            <div class="w-11 h-11 rounded-full bg-brand-100 border-2 border-dashed border-brand-300 flex items-center justify-center">
+              <i data-lucide="send" class="w-4 h-4 text-brand-400"></i>
+            </div>
+          </div>
+ 
+        </div>
+ 
+        <p class="text-center text-xs text-ink-muted/50 font-body mt-6">
+          📌 Aquí s'integrarà la connexió amb l'API de Claude / OpenAI per a respostes en temps real sobre preus i pressupost.
+        </p>
+      </div>
+    </section>
+ 
+  </main>
+ 
+ 
+  <!-- ══════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════ -->
+  <footer class="border-t border-ink-muted/10 bg-white mt-10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-lg bg-brand-500 flex items-center justify-center">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+            <path d="M3 12 L8 4 L13 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5.5 9 h5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="font-display font-700 text-sm text-ink">SmartPrice Comparator</span>
+      </div>
+      <p class="font-body text-xs text-ink-muted/50">Fet amb 💚 per a universitaris · Barcelona · 2025</p>
+      <div class="flex gap-5">
+        <a href="#" class="font-body text-xs text-ink-muted/50 hover:text-ink transition-colors">Privacitat</a>
+        <a href="#" class="font-body text-xs text-ink-muted/50 hover:text-ink transition-colors">Termes</a>
+        <a href="#" class="font-body text-xs text-ink-muted/50 hover:text-ink transition-colors">Contacte</a>
+      </div>
+    </div>
+  </footer>
+ 
+ 
+  <!-- ══════════════════════════════════════════════
+       JAVASCRIPT — Routing + Nav + Menu
+  ════════════════════════════════════════════════ -->
+  <script>
+    // ── View routing ──────────────────────────────
+    const views   = ['inici','pressupost','comparador','assessor'];
+    const navIds  = ['inici','pressupost','comparador','assessor'];
+    const navDesktop = { inici:'nav-inici', pressupost:'nav-pressupost', comparador:'nav-comparador', assessor:'nav-assessor' };
+    const navMobile  = { inici:'mnav-inici', pressupost:'mnav-pressupost', comparador:'mnav-comparador', assessor:'mnav-assessor' };
+ 
+    function showView(name) {
+      // toggle views
+      views.forEach(v => {
+        const el = document.getElementById('view-' + v);
+        el.classList.toggle('active', v === name);
+      });
+      // toggle nav pills — desktop
+      Object.keys(navDesktop).forEach(k => {
+        const el = document.getElementById(navDesktop[k]);
+        if (el) el.classList.toggle('active', k === name);
+      });
+      // toggle nav pills — mobile
+      Object.keys(navMobile).forEach(k => {
+        const el = document.getElementById(navMobile[k]);
+        if (el) el.classList.toggle('active', k === name);
+      });
+      // scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+ 
+    // ── Mobile hamburger ──────────────────────────
+    let menuOpen = false;
+    function toggleMenu() {
+      menuOpen = !menuOpen;
+      const menu   = document.getElementById('mobile-menu');
+      const iOpen  = document.getElementById('icon-open');
+      const iClose = document.getElementById('icon-close');
+      menu.classList.toggle('open', menuOpen);
+      iOpen.classList.toggle('hidden', menuOpen);
+      iClose.classList.toggle('hidden', !menuOpen);
+    }
+ 
+    // ── Init Lucide icons ─────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
