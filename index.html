@@ -534,6 +534,21 @@
             </div>
           </div>
 
+          <div id="viabilitat-bloc" class="hidden mt-3 rounded-2xl p-5 border">
+            <div class="flex items-start gap-3">
+              <div id="viabilitat-icon-container" class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i id="viabilitat-icon" data-lucide="activity" class="w-4 h-4"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between items-center mb-1">
+                  <p class="font-display font-700 text-sm text-ink">Diagnòstic de Viabilitat</p>
+                  <span id="viabilitat-badge" class="font-display font-700 text-xs px-2 py-0.5 rounded-full border"></span>
+                </div>
+                <p class="font-body text-sm text-ink-muted leading-relaxed" id="viabilitat-text"></p>
+              </div>
+            </div>
+          </div>
+
           <div id="recomanacions-bloc" class="hidden mt-3">
             <div class="rounded-2xl p-5 border border-brand-200 bg-brand-50/60">
               <p class="font-display font-700 text-sm text-brand-700 mb-3 flex items-center gap-2">
@@ -556,120 +571,49 @@
       <div class="max-w-5xl mx-auto px-4 sm:px-6 py-20">
  
         <div class="mb-10">
-          <span class="placeholder-badge mb-4">
-            <i data-lucide="construction" class="w-3 h-3"></i> En construcció
-          </span>
-          <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">Dashboard de Comparativa</h1>
-          <p class="font-body text-lg text-ink-muted">Aquí veuràs gràfics en temps real i semàfors de preus de mercat per a cada categoria de productes.</p>
+          <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">Preus de Mercat</h1>
+          <p class="font-body text-lg text-ink-muted">Tria una categoria per conèixer els preus actualitzats a la teva zona.</p>
         </div>
- 
-        <!-- Bento grid placeholder dashboard -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
- 
-          <!-- Semàfor card -->
-          <div class="bento-card p-6">
-            <p class="font-display font-600 text-xs text-ink-muted uppercase tracking-widest mb-4">Semàfor de Preus</p>
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="font-body text-sm text-ink">Làctics</span>
-                <div class="flex items-center gap-2"><div class="dot-green"></div><span class="font-display font-700 text-xs text-brand-600">Barat</span></div>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="font-body text-sm text-ink">Pa i cereals</span>
-                <div class="flex items-center gap-2"><div class="dot-yellow"></div><span class="font-display font-700 text-xs text-amber-600">Moderat</span></div>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="font-body text-sm text-ink">Fruita fresca</span>
-                <div class="flex items-center gap-2"><div class="dot-red"></div><span class="font-display font-700 text-xs text-red-500">Car</span></div>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="font-body text-sm text-ink">Proteïnes</span>
-                <div class="flex items-center gap-2"><div class="dot-yellow"></div><span class="font-display font-700 text-xs text-amber-600">Moderat</span></div>
-              </div>
-            </div>
-            <span class="placeholder-badge mt-5">Dades simulades</span>
+
+        <!-- Navegació per categories -->
+        <div class="mb-8">
+          <div id="categories-nav" class="flex flex-wrap gap-2">
+            <!-- Emplenat per JS -->
           </div>
- 
-          <!-- Bar chart placeholder -->
-          <div class="bento-card p-6 sm:col-span-2">
-            <p class="font-display font-600 text-xs text-ink-muted uppercase tracking-widest mb-4">Comparació Supermercats — Cistella Tipus</p>
-            <div class="space-y-3">
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="font-body text-xs text-ink">Mercadona</span>
-                  <span class="font-display font-700 text-xs text-brand-600">€87.40</span>
-                </div>
-                <div class="h-3 rounded-full bg-brand-100 overflow-hidden">
-                  <div class="h-full rounded-full bg-brand-500" style="width:72%"></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="font-body text-xs text-ink">Lidl</span>
-                  <span class="font-display font-700 text-xs text-brand-600">€74.20</span>
-                </div>
-                <div class="h-3 rounded-full bg-brand-100 overflow-hidden">
-                  <div class="h-full rounded-full bg-brand-500" style="width:61%"></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="font-body text-xs text-ink">Bonpreu</span>
-                  <span class="font-display font-700 text-xs text-amber-600">€102.80</span>
-                </div>
-                <div class="h-3 rounded-full bg-amber-50 overflow-hidden">
-                  <div class="h-full rounded-full bg-amber-400" style="width:84%"></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="font-body text-xs text-ink">Aldi</span>
-                  <span class="font-display font-700 text-xs text-brand-600">€69.50</span>
-                </div>
-                <div class="h-3 rounded-full bg-brand-100 overflow-hidden">
-                  <div class="h-full rounded-full bg-brand-400" style="width:57%"></div>
-                </div>
-              </div>
-            </div>
-            <span class="placeholder-badge mt-5">Dades simulades · Gràfics reals aquí</span>
-          </div>
- 
-          <!-- Estalvi potencial -->
-          <div class="bento-card p-6 bg-ink" style="background:#0d1117;">
-            <p class="font-display font-600 text-xs text-white/40 uppercase tracking-widest mb-3">Estalvi potencial</p>
-            <p class="font-display font-800 text-4xl text-brand-400 mb-1">€32.90</p>
-            <p class="font-body text-sm text-white/50">si compres a Aldi en lloc de Bonpreu</p>
-            <span class="placeholder-badge mt-4" style="color:#4ade80;background:rgba(74,222,128,0.10);border-color:rgba(74,222,128,0.3);">Simulat</span>
-          </div>
- 
-          <!-- Historial -->
-          <div class="bento-card p-6 sm:col-span-2">
-            <p class="font-display font-600 text-xs text-ink-muted uppercase tracking-widest mb-4">Historial de despesa mensual</p>
-            <!-- Mini sparkline placeholder -->
-            <div class="flex items-end gap-2 h-20 px-2">
-              <div class="flex-1 rounded-t-lg bg-brand-200" style="height:40%"></div>
-              <div class="flex-1 rounded-t-lg bg-brand-300" style="height:60%"></div>
-              <div class="flex-1 rounded-t-lg bg-brand-400" style="height:75%"></div>
-              <div class="flex-1 rounded-t-lg bg-brand-500" style="height:55%"></div>
-              <div class="flex-1 rounded-t-lg bg-brand-300" style="height:45%"></div>
-              <div class="flex-1 rounded-t-lg bg-brand-400 ring-2 ring-brand-500 ring-offset-2" style="height:65%"></div>
-            </div>
-            <div class="flex justify-between mt-2">
-              <span class="font-body text-xs text-ink-muted/60">Nov</span>
-              <span class="font-body text-xs text-ink-muted/60">Des</span>
-              <span class="font-body text-xs text-ink-muted/60">Gen</span>
-              <span class="font-body text-xs text-ink-muted/60">Feb</span>
-              <span class="font-body text-xs text-ink-muted/60">Mar</span>
-              <span class="font-body text-xs text-brand-500 font-600">Abr</span>
-            </div>
-            <span class="placeholder-badge mt-4">Chart.js / Recharts aquí</span>
-          </div>
- 
         </div>
- 
-        <p class="text-center text-xs text-ink-muted/50 font-body">
-          📌 Aquí s'integraran gràfics interactius (Chart.js / Recharts), semàfors de preus en temps real i la cistella de la compra personalitzada.
-        </p>
+
+        <!-- Resultats de la categoria seleccionada -->
+        <div id="comparador-results" class="hidden">
+          <div class="flex items-center gap-3 mb-6">
+            <h2 id="comparador-cat-title" class="font-display font-800 text-2xl text-ink capitalize"></h2>
+            <span class="inline-flex items-center gap-1.5 bg-brand-50 border border-brand-200 text-brand-700 text-xs font-display font-700 px-3 py-1 rounded-full">
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
+              Actualitzat
+            </span>
+          </div>
+
+          <!-- Desglossament de preus de mercat -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="bento-card p-6 border-l-4 border-brand-400 flex flex-col justify-center">
+              <p class="font-body text-sm font-600 text-ink-muted uppercase tracking-widest mb-1">Preu Mínim</p>
+              <p id="comparador-min" class="font-display font-800 text-4xl text-brand-600"></p>
+            </div>
+            <div class="bento-card p-6 border-l-4 border-amber-400 flex flex-col justify-center">
+              <p class="font-body text-sm font-600 text-ink-muted uppercase tracking-widest mb-1">Preu Mitjà</p>
+              <p id="comparador-avg" class="font-display font-800 text-4xl text-amber-600"></p>
+            </div>
+            <div class="bento-card p-6 border-l-4 border-red-400 flex flex-col justify-center">
+              <p class="font-body text-sm font-600 text-ink-muted uppercase tracking-widest mb-1">Preu Màxim</p>
+              <p id="comparador-max" class="font-display font-800 text-4xl text-red-500"></p>
+            </div>
+          </div>
+
+          <!-- Llista d'opcions -->
+          <h3 class="font-display font-700 text-lg text-ink mb-4">Opcions detallades</h3>
+          <div id="comparador-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Emplenat per JS -->
+          </div>
+        </div>
       </div>
     </section>
  
@@ -871,6 +815,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide) lucide.createIcons();
       initDespesesPerDefecte();
+      initComparador();
     });
 
     // ══════════════════════════════════════════════
@@ -1978,6 +1923,51 @@
           alertaEl.classList.add('hidden');
         }
 
+        // Diagnòstic de viabilitat
+        const COST_VIDA_MITJA = 1050; // Cost de vida mitjà estimat a Barcelona
+        const viabilitatBloc = document.getElementById('viabilitat-bloc');
+        const viabilitatBadge = document.getElementById('viabilitat-badge');
+        const viabilitatText = document.getElementById('viabilitat-text');
+        const viabilitatIconContainer = document.getElementById('viabilitat-icon-container');
+        const viabilitatIcon = document.getElementById('viabilitat-icon');
+
+        if (meta > 0) {
+          viabilitatBloc.classList.remove('hidden');
+          const margeReal = ingressos - despeses;
+          const margeEstimat = ingressos - COST_VIDA_MITJA;
+          
+          if (margeReal < meta) {
+            // Impossible
+            viabilitatBloc.className = 'mt-3 rounded-2xl p-5 border border-red-200 bg-red-50 transition-all';
+            viabilitatBadge.className = 'font-display font-700 text-xs px-2 py-0.5 rounded-full border border-red-200 bg-red-100 text-red-700';
+            viabilitatBadge.textContent = 'Impossible';
+            viabilitatIconContainer.className = 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-red-100';
+            viabilitatIcon.setAttribute('data-lucide', 'x-circle');
+            viabilitatIcon.className = 'w-4 h-4 text-red-600';
+            viabilitatText.innerHTML = `La teva meta és <b>matemàticament impossible</b> amb els ingressos i despeses actuals. Et falten ${fmt(meta - margeReal)} per assolir-la.`;
+          } else if (margeEstimat < meta && despeses < COST_VIDA_MITJA) {
+            // Poc realista
+            viabilitatBloc.className = 'mt-3 rounded-2xl p-5 border border-amber-200 bg-amber-50 transition-all';
+            viabilitatBadge.className = 'font-display font-700 text-xs px-2 py-0.5 rounded-full border border-amber-200 bg-amber-100 text-amber-700';
+            viabilitatBadge.textContent = 'Poc Realista';
+            viabilitatIconContainer.className = 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-amber-100';
+            viabilitatIcon.setAttribute('data-lucide', 'alert-triangle');
+            viabilitatIcon.className = 'w-4 h-4 text-amber-600';
+            viabilitatText.innerHTML = `Aconseguible matemàticament, però el cost de vida mitjà a la teva zona (${fmt(COST_VIDA_MITJA)}) podria dificultar-ho. Vigila les despeses imprevistes.`;
+          } else {
+            // Realista
+            viabilitatBloc.className = 'mt-3 rounded-2xl p-5 border border-brand-200 bg-brand-50 transition-all';
+            viabilitatBadge.className = 'font-display font-700 text-xs px-2 py-0.5 rounded-full border border-brand-200 bg-brand-100 text-brand-700';
+            viabilitatBadge.textContent = 'Realista';
+            viabilitatIconContainer.className = 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-brand-100';
+            viabilitatIcon.setAttribute('data-lucide', 'check-circle-2');
+            viabilitatIcon.className = 'w-4 h-4 text-brand-600';
+            viabilitatText.innerHTML = `La teva meta és <b>realista i assolible</b>. Tens un marge de seguretat suficient segons el teu pressupost.`;
+          }
+        } else {
+          viabilitatBloc.classList.add('hidden');
+        }
+
         // Recomanacions de serveis
         const recBloc = document.getElementById('recomanacions-bloc');
         const recLlista = document.getElementById('recomanacions-llista');
@@ -2040,6 +2030,79 @@
       document.getElementById('meta-estalvi').value = '';
       initDespesesPerDefecte();
       document.getElementById('balanc-resum').classList.add('hidden');
+    }
+
+    // ── MÒDUL COMPARADOR ──────────────────────────
+    function initComparador() {
+      const navContainer = document.getElementById('categories-nav');
+      // Categories clau per mostrar
+      const cats = ['supermercats', 'lloguer', 'transport', 'gimnas', 'streaming-video', 'mobil', 'internet'];
+      
+      cats.forEach((key, i) => {
+        const cat = DB[key];
+        if (!cat) return;
+        const btn = document.createElement('button');
+        btn.className = `cat-btn font-display font-600 text-sm px-4 py-2 rounded-full border transition-all ${i === 0 ? 'bg-ink text-white border-ink' : 'bg-white text-ink-muted border-ink-muted/20 hover:border-ink/50'}`;
+        btn.textContent = cat.label.charAt(0).toUpperCase() + cat.label.slice(1);
+        btn.onclick = () => selectCategory(key, btn);
+        navContainer.appendChild(btn);
+      });
+
+      // Seleccionar la primera per defecte
+      if (cats.length > 0) {
+        selectCategory(cats[0], navContainer.firstElementChild);
+      }
+    }
+
+    function selectCategory(key, btnEl) {
+      // Update active button state
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.className = 'cat-btn font-display font-600 text-sm px-4 py-2 rounded-full border transition-all bg-white text-ink-muted border-ink-muted/20 hover:border-ink/50 hover:bg-brand-50 hover:text-brand-700';
+      });
+      if (btnEl) {
+        btnEl.className = 'cat-btn font-display font-600 text-sm px-4 py-2 rounded-full border transition-all bg-brand-500 text-white border-brand-500 shadow-lg transform scale-105';
+      }
+
+      const cat = DB[key];
+      if (!cat) return;
+
+      document.getElementById('comparador-results').classList.remove('hidden');
+      document.getElementById('comparador-cat-title').textContent = cat.label;
+
+      const prices = cat.options.map(o => o.price);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+
+      document.getElementById('comparador-min').textContent = fmt(min);
+      document.getElementById('comparador-avg').textContent = fmt(avg);
+      document.getElementById('comparador-max').textContent = fmt(max);
+
+      const optionsContainer = document.getElementById('comparador-options');
+      optionsContainer.innerHTML = '';
+      
+      cat.options.forEach(opt => {
+        // Color per indicar on es situa el preu respecte a la mitjana
+        let colorClass = 'text-amber-600';
+        let borderClass = 'border-amber-200';
+        if (opt.price <= avg * 0.9) { colorClass = 'text-brand-600'; borderClass = 'border-brand-200'; }
+        else if (opt.price >= avg * 1.1) { colorClass = 'text-red-500'; borderClass = 'border-red-200'; }
+
+        optionsContainer.innerHTML += `
+          <div class="bento-card p-5 bg-white flex flex-col justify-between h-full border ${borderClass} hover:shadow-lg transition-all">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="font-display font-700 text-base text-ink">${opt.name}</h4>
+                <span class="font-display font-800 text-lg ${colorClass}">${escapeHtml(opt.priceLabel)}</span>
+              </div>
+              <p class="font-body text-sm text-ink-muted mb-3">${escapeHtml(opt.description)}</p>
+            </div>
+            ${opt.badge ? `<div class="mt-auto pt-2"><span class="inline-block font-display font-700 text-xs px-2 py-1 bg-surface rounded text-ink-muted border border-ink/10">${escapeHtml(opt.badge)}</span></div>` : ''}
+          </div>
+        `;
+      });
+      
+      if (window.lucide) lucide.createIcons();
     }
   </script>
 </body>
