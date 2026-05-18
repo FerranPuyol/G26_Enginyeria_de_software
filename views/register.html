@@ -1,0 +1,41 @@
+<!-- ─────────────────────────────────────────────
+     VISTA 6: REGISTER
+───────────────────────────────────────────── -->
+<section id="view-register" class="view">
+  <div class="max-w-md mx-auto px-4 sm:px-6 py-20">
+    <div class="bento-card p-8 sm:p-10">
+      <div class="text-center mb-8">
+        <h1 class="font-display font-800 text-3xl text-ink mb-2">Crea el teu compte</h1>
+        <p class="font-body text-sm text-ink-muted">Comença a controlar les teves finances avui</p>
+      </div>
+      
+      <form id="register-form" onsubmit="handleRegister(event)" class="space-y-5">
+        <div class="space-y-1.5">
+          <label for="register-name" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Nom complet</label>
+          <input type="text" id="register-name" required placeholder="Ex: Joan Garcia" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+        </div>
+        
+        <div class="space-y-1.5">
+          <label for="register-email" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Correu electrònic</label>
+          <input type="email" id="register-email" required placeholder="nom@exemple.com" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+        </div>
+        
+        <div class="space-y-1.5">
+          <label for="register-password" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Contrasenya</label>
+          <input type="password" id="register-password" required placeholder="Mínim 8 caràcters" minlength="8" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+        </div>
+        
+        <button type="submit" class="w-full h-12 rounded-xl bg-brand-500 hover:bg-brand-600 font-display font-700 text-sm text-white shadow-glow-green transition-all hover:scale-[1.02] flex items-center justify-center gap-2 mt-4">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          Registrar-se
+        </button>
+      </form>
+      
+      <div class="mt-6 pt-6 border-t border-ink-muted/10 text-center">
+        <p class="font-body text-sm text-ink-muted">
+          Ja tens compte? <button onclick="showView('login')" class="font-display font-700 text-brand-600 hover:underline">Entra aquí</button>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

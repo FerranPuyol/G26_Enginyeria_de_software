@@ -1,0 +1,119 @@
+<!-- ─────────────────────────────────────────────
+     VISTA 4: ASSESSOR IA — Funcional
+───────────────────────────────────────────── -->
+<section id="view-assessor" class="view">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 py-16">
+
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-full px-4 py-1.5 mb-5">
+        <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+        <span class="font-display font-700 text-xs text-brand-700 tracking-wider uppercase">En línia · Powered by Claude AI</span>
+      </div>
+      <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mb-3">Assessor IA</h1>
+      <p class="font-body text-base text-ink-muted max-w-md mx-auto">
+        Escriu el que necessites i et trobaré les millors opcions del mercat que s'ajusten al teu pressupost.
+      </p>
+    </div>
+
+    <!-- Chat card -->
+    <div class="bento-card overflow-hidden flex flex-col" style="min-height:520px;">
+
+      <!-- Chat header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-ink-muted/10 bg-white flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center shadow-glow-green">
+            <i data-lucide="bot" class="w-4 h-4 text-white"></i>
+          </div>
+          <div>
+            <p class="font-display font-700 text-sm text-ink">SmartPrice Assistant</p>
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
+              <span class="font-body text-xs text-brand-600">En línia · respon en català</span>
+            </div>
+          </div>
+        </div>
+        <button onclick="clearChat()" title="Netejar conversa"
+          class="w-8 h-8 rounded-xl bg-surface hover:bg-red-50 border border-ink-muted/10 hover:border-red-200 flex items-center justify-center transition-colors group">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5 text-ink-muted group-hover:text-red-400"></i>
+        </button>
+      </div>
+
+      <!-- Messages area -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4 bg-surface"
+        style="max-height:420px; scroll-behavior:smooth;">
+
+        <!-- Welcome message -->
+        <div class="flex gap-3" id="msg-welcome">
+          <div class="w-7 h-7 rounded-full bg-brand-100 flex-shrink-0 flex items-center justify-center mt-0.5">
+            <i data-lucide="bot" class="w-3 h-3 text-brand-600"></i>
+          </div>
+          <div class="flex flex-col gap-2 max-w-sm">
+            <div class="chat-bubble-in px-4 py-3">
+              <p class="font-body text-sm text-ink leading-relaxed">
+                Hola! 👋 Soc el teu assessor de pressupost. Escriu-me una petició com ara:
+              </p>
+              <ul class="mt-2 space-y-1">
+                <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Busca'm gimnasos per menys de 30€/mes"</em></li>
+                <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Plataformes de streaming per menys de 10€"</em></li>
+                <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Transport públic mensual a Barcelona"</em></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick chips -->
+      <div id="chat-chips" class="px-4 py-3 border-t border-ink-muted/06 bg-white flex flex-wrap gap-2">
+        <span class="font-body text-xs text-ink-muted mr-1 self-center">Proves ràpides:</span>
+        <button onclick="sendChip('Busca\'m cadenes de gimnasos per menys de 30€ al mes')"
+          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+          🏋️ Gimnàs &lt;30€
+        </button>
+        <button onclick="sendChip('Piscines municipals a Barcelona')"
+          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+          🏊 Piscines
+        </button>
+        <button onclick="sendChip('Quin pla de streaming de video puc contractar per menys de 6€?')"
+          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+          📺 Streaming &lt;6€
+        </button>
+        <button onclick="sendChip('Opcions de transport mensual a Barcelona per menys de 25€')"
+          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+          🚇 Transport BCN
+        </button>
+        <button onclick="sendChip('Tarifes de mobil econòmiques per menys de 10€')"
+          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+          📱 Mòbil &lt;10€
+        </button>
+        <button onclick="sendChip('Cursos d\'angles a Barcelona')"
+          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+          🗣️ Anglès
+        </button>
+        <button onclick="sendChip('Opcions de coworking a Barcelona per menys de 200€')"
+          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+          💻 Coworking
+        </button>
+      </div>
+
+      <!-- Input bar -->
+      <div class="px-4 py-3 border-t border-ink-muted/10 bg-white flex items-end gap-2 flex-shrink-0">
+        <textarea id="chat-input" rows="1" placeholder='Ex: "Busca\'m cadenes de gimnasos per menys de 30€ al mes"'
+          onkeydown="handleChatKey(event)" oninput="autoResizeTextarea(this)"
+          class="flex-1 rounded-2xl border-2 border-brand-200 bg-brand-50/30 px-4 py-2.5 font-body text-sm text-ink placeholder-brand-300/70 focus:outline-none focus:border-brand-400 focus:bg-white transition-colors resize-none overflow-hidden leading-relaxed"
+          style="max-height:96px;"></textarea>
+        <button id="chat-send-btn" onclick="sendMessage()"
+          class="w-10 h-10 rounded-full bg-brand-500 hover:bg-brand-600 flex-shrink-0 flex items-center justify-center shadow-glow-green transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+          title="Enviar (Enter)">
+          <i data-lucide="send" class="w-4 h-4 text-white"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <p class="text-center text-xs text-ink-muted/40 font-body mt-4">
+      Les respostes es basen en dades de mercat aproximades · SmartPrice BCN 2025
+    </p>
+  </div>
+</section>

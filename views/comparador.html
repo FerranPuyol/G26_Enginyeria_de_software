@@ -1,0 +1,52 @@
+<!-- ─────────────────────────────────────────────
+     VISTA 3: DASHBOARD COMPARATIVA
+───────────────────────────────────────────── -->
+<section id="view-comparador" class="view">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-20">
+
+    <div class="mb-10">
+      <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">Preus de Mercat</h1>
+      <p class="font-body text-lg text-ink-muted">Tria una categoria per conèixer els preus actualitzats a la teva zona.</p>
+    </div>
+
+    <!-- Navegació per categories -->
+    <div class="mb-8">
+      <div id="categories-nav" class="flex flex-wrap gap-2">
+        <!-- Emplenat per JS -->
+      </div>
+    </div>
+
+    <!-- Resultats de la categoria seleccionada -->
+    <div id="comparador-results" class="hidden">
+      <div class="flex items-center gap-3 mb-6">
+        <h2 id="comparador-cat-title" class="font-display font-800 text-2xl text-ink capitalize"></h2>
+        <span class="inline-flex items-center gap-1.5 bg-brand-50 border border-brand-200 text-brand-700 text-xs font-display font-700 px-3 py-1 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
+          Actualitzat
+        </span>
+      </div>
+
+      <!-- Desglossament de preus de mercat -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bento-card p-6 border-l-4 border-brand-400 flex flex-col justify-center">
+          <p class="font-body text-sm font-600 text-ink-muted uppercase tracking-widest mb-1">Preu Mínim</p>
+          <p id="comparador-min" class="font-display font-800 text-4xl text-brand-600"></p>
+        </div>
+        <div class="bento-card p-6 border-l-4 border-amber-400 flex flex-col justify-center">
+          <p class="font-body text-sm font-600 text-ink-muted uppercase tracking-widest mb-1">Preu Mitjà</p>
+          <p id="comparador-avg" class="font-display font-800 text-4xl text-amber-600"></p>
+        </div>
+        <div class="bento-card p-6 border-l-4 border-red-400 flex flex-col justify-center">
+          <p class="font-body text-sm font-600 text-ink-muted uppercase tracking-widest mb-1">Preu Màxim</p>
+          <p id="comparador-max" class="font-display font-800 text-4xl text-red-500"></p>
+        </div>
+      </div>
+
+      <!-- Llista d'opcions -->
+      <h3 class="font-display font-700 text-lg text-ink mb-4">Opcions detallades</h3>
+      <div id="comparador-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Emplenat per JS -->
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,39 @@
+<!-- ─────────────────────────────────────────────
+     VISTA 5: LOGIN
+───────────────────────────────────────────── -->
+<section id="view-login" class="view">
+  <div class="max-w-md mx-auto px-4 sm:px-6 py-20">
+    <div class="bento-card p-8 sm:p-10">
+      <div class="text-center mb-8">
+        <h1 class="font-display font-800 text-3xl text-ink mb-2">Benvingut de nou</h1>
+        <p class="font-body text-sm text-ink-muted">Inicia sessió per continuar estalviant</p>
+      </div>
+      
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+        <div class="space-y-1.5">
+          <label for="login-email" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Correu electrònic</label>
+          <input type="email" id="login-email" required placeholder="nom@exemple.com" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+        </div>
+        
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center">
+            <label for="login-password" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Contrasenya</label>
+            <a href="#" class="font-body text-xs text-brand-600 hover:underline">Has oblidat la contrasenya?</a>
+          </div>
+          <input type="password" id="login-password" required placeholder="••••••••" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+        </div>
+        
+        <button type="submit" class="w-full h-12 rounded-xl bg-brand-500 hover:bg-brand-600 font-display font-700 text-sm text-white shadow-glow-green transition-all hover:scale-[1.02] flex items-center justify-center gap-2 mt-4">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          Entrar
+        </button>
+      </form>
+      
+      <div class="mt-6 pt-6 border-t border-ink-muted/10 text-center">
+        <p class="font-body text-sm text-ink-muted">
+          No tens compte? <button onclick="showView('register')" class="font-display font-700 text-brand-600 hover:underline">Registra't gratis</button>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

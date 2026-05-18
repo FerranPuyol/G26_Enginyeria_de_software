@@ -1,0 +1,136 @@
+<!-- ─────────────────────────────────────────────
+     VISTA 1: INICI (Hero + Bento grid)
+───────────────────────────────────────────── -->
+<section id="view-inici" class="view active">
+
+  <!-- Hero -->
+  <div class="hero-bg px-4 sm:px-6 pt-20 pb-16">
+    <div class="max-w-4xl mx-auto text-center">
+
+      <!-- Pill badge -->
+      <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-full px-4 py-1.5 mb-8">
+        <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+        <span class="font-display font-700 text-xs text-brand-700 tracking-wider uppercase">Fet per a universitaris
+          · Barcelona</span>
+      </div>
+
+      <!-- Headline -->
+      <h1
+        class="font-display font-800 text-5xl sm:text-6xl md:text-7xl leading-[1.05] tracking-tight text-ink mb-6">
+        Compara els teus<br />
+        <span class="gradient-text">preus i estalvia</span><br />
+        a final de mes
+      </h1>
+
+      <p class="font-body text-lg sm:text-xl text-ink-muted max-w-xl mx-auto mb-10 leading-relaxed">
+        Controla el teu pressupost estudiantil, compara preus de supermercat en temps real
+        i rep consells intel·ligents per arribar a final de mes sense estrès.
+      </p>
+
+      <!-- CTA buttons -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+        <button onclick="showView('pressupost')"
+          class="w-full sm:w-auto font-display font-700 text-white bg-brand-500 hover:bg-brand-600 px-8 py-3.5 rounded-full text-base shadow-glow-green transition-all hover:scale-105 flex items-center justify-center gap-2">
+          <i data-lucide="rocket" class="w-4 h-4"></i>
+          Comença ara — és gratis
+        </button>
+        <button onclick="showView('comparador')"
+          class="w-full sm:w-auto font-display font-600 text-ink border border-ink/10 hover:border-brand-400 bg-white/70 px-8 py-3.5 rounded-full text-base transition-all hover:text-brand-600 flex items-center justify-center gap-2">
+          <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+          Veure el Comparador
+        </button>
+      </div>
+
+      <!-- Social proof -->
+      <div class="flex items-center justify-center gap-6 mt-12 opacity-60">
+        <div class="text-center">
+          <p class="font-display font-800 text-2xl text-ink">3.2k+</p>
+          <p class="font-body text-xs text-ink-muted">estudiants</p>
+        </div>
+        <div class="w-px h-8 bg-ink-muted/20"></div>
+        <div class="text-center">
+          <p class="font-display font-800 text-2xl text-ink">€47</p>
+          <p class="font-body text-xs text-ink-muted">estalvi mig/mes</p>
+        </div>
+        <div class="w-px h-8 bg-ink-muted/20"></div>
+        <div class="text-center">
+          <p class="font-display font-800 text-2xl text-ink">98%</p>
+          <p class="font-body text-xs text-ink-muted">satisfacció</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bento grid — features -->
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+    <p class="font-display font-700 text-sm text-brand-600 uppercase tracking-widest text-center mb-3">
+      Funcionalitats principals</p>
+    <h2 class="font-display font-800 text-3xl sm:text-4xl text-ink text-center mb-12">Tot el que necessites,<br />en
+      un sol lloc</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+      <!-- Card 1 -->
+      <div class="bento-card p-7 lg:col-span-2">
+        <div class="w-11 h-11 rounded-2xl bg-brand-50 flex items-center justify-center mb-5">
+          <i data-lucide="trending-down" class="w-5 h-5 text-brand-500"></i>
+        </div>
+        <h3 class="font-display font-700 text-xl text-ink mb-2">Comparador de preus en temps real</h3>
+        <p class="font-body text-sm text-ink-muted leading-relaxed">
+          Consulta i compara els preus dels supermercats del teu barri (Mercadona, Lidl, Bonpreu…) i descobreix on
+          et surt més a compte fer la compra setmanal.
+        </p>
+        <span class="placeholder-badge mt-5 inline-flex">
+          <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
+        </span>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="bento-card p-7 bg-ink flex flex-col justify-between" style="background:#0d1117;">
+        <div class="w-11 h-11 rounded-2xl bg-brand-500/15 flex items-center justify-center mb-5">
+          <i data-lucide="wallet" class="w-5 h-5 text-brand-400"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-700 text-xl text-white mb-2">Control del pressupost</h3>
+          <p class="font-body text-sm text-white/50 leading-relaxed">Defineix ingressos i despeses i veu en temps
+            real fins on arriben els teus euros.</p>
+        </div>
+        <span class="placeholder-badge mt-5"
+          style="color:#4ade80;background:rgba(74,222,128,0.10);border-color:rgba(74,222,128,0.3);">
+          <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
+        </span>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="bento-card p-7">
+        <div class="w-11 h-11 rounded-2xl bg-amber-50 flex items-center justify-center mb-5">
+          <i data-lucide="bot" class="w-5 h-5 text-amber-500"></i>
+        </div>
+        <h3 class="font-display font-700 text-xl text-ink mb-2">Assessor IA</h3>
+        <p class="font-body text-sm text-ink-muted leading-relaxed">
+          Pregunta-li al teu assistent personal quins productes escollir o com optimitzar la teva llista de la
+          compra.
+        </p>
+        <span class="placeholder-badge mt-5">
+          <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
+        </span>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="bento-card p-7 sm:col-span-2 lg:col-span-2">
+        <div class="w-11 h-11 rounded-2xl bg-violet-50 flex items-center justify-center mb-5">
+          <i data-lucide="bell" class="w-5 h-5 text-violet-500"></i>
+        </div>
+        <h3 class="font-display font-700 text-xl text-ink mb-2">Alertes d'oferta personalitzades</h3>
+        <p class="font-body text-sm text-ink-muted leading-relaxed">
+          Rep una notificació quan el producte que compres habitualment baixi de preu al supermercat més proper. Mai
+          et perdis una oferta.
+        </p>
+        <span class="placeholder-badge mt-5">
+          <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
+        </span>
+      </div>
+
+    </div>
+  </div>
+</section>
