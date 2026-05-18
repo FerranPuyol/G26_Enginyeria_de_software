@@ -1235,9 +1235,9 @@
       container.innerHTML = '';
       despesesDades.forEach(d => {
         const row = document.createElement('div');
-        row.className = 'flex items-center gap-2';
+        row.className = 'space-y-1';
         row.innerHTML = `
-          <div class="flex-1 flex items-center gap-2">
+          <div class="flex items-center gap-2">
             <input
               type="text"
               value="${d.nom}"
@@ -1253,14 +1253,15 @@
                 step="0.01"
                 value="${d.import}"
                 placeholder="0"
-                oninput="actualitzarImportDespesa(${d.id}, this.value)"
+                oninput="validarNegatiu(this,'error-despesa-${d.id}');actualitzarImportDespesa(${d.id}, this.value)"
                 class="w-full h-11 rounded-xl border-2 border-red-100 bg-red-50/30 pl-7 pr-3 font-body text-sm text-ink placeholder-red-300 focus:outline-none focus:border-red-300 focus:bg-white transition-colors"
               />
             </div>
+            <button onclick="eliminarDespesa(${d.id})" class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors flex-shrink-0" title="Eliminar">
+              <i data-lucide="x" class="w-4 h-4 text-red-400"></i>
+            </button>
           </div>
-          <button onclick="eliminarDespesa(${d.id})" class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors flex-shrink-0" title="Eliminar">
-            <i data-lucide="x" class="w-4 h-4 text-red-400"></i>
-          </button>`;
+          <p id="error-despesa-${d.id}" class="hidden font-body text-xs text-red-500 font-600 pl-1">No es permeten números negatius</p>`;
         container.appendChild(row);
       });
       if (window.lucide) lucide.createIcons();
@@ -1282,6 +1283,21 @@
       calcularBalanc();
     }
 
+    function validarNegatiu(input, errorId) {
+      const val = parseFloat(input.value);
+      const isNeg = !isNaN(val) && val < 0;
+      document.getElementById(errorId).classList.toggle('hidden', !isNeg);
+      input.style.borderColor = isNeg ? '#ef4444' : '';
+    }
+
+    function teCampsNegatius() {
+      const ingressos = parseFloat(document.getElementById('ingressos-nets').value);
+      if (!isNaN(ingressos) && ingressos < 0) return true;
+      const meta = parseFloat(document.getElementById('meta-estalvi').value);
+      if (!isNaN(meta) && meta < 0) return true;
+      return despesesDades.some(d => { const v = parseFloat(d.import); return !isNaN(v) && v < 0; });
+    }
+
     function actualitzarNomDespesa(id, val) {
       const d = despesesDades.find(d => d.id === id);
       if (d) d.nom = val;
@@ -1299,6 +1315,10 @@
     }
 
     function calcularBalanc() {
+      if (teCampsNegatius()) {
+        document.getElementById('balanc-resum').classList.add('hidden');
+        return;
+      }
       const ingressos = parseFloat(document.getElementById('ingressos-nets').value) || 0;
       const despeses = despesesDades.reduce((acc, d) => acc + (parseFloat(d.import) || 0), 0);
       const meta = parseFloat(document.getElementById('meta-estalvi').value) || 0;
@@ -1492,6 +1512,7 @@
     }
 
     function guardarPressupost() {
+      if (teCampsNegatius()) return;
       const ingressos = parseFloat(document.getElementById('ingressos-nets').value) || 0;
       const meta = parseFloat(document.getElementById('meta-estalvi').value) || 0;
       if (ingressos <= 0) {
