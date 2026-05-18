@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="ca" class="scroll-smooth">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Price Comparator</title>
- 
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
- 
+
   <!-- Google Fonts: Syne (display) + DM Sans (body) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
- 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+    rel="stylesheet" />
+
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
- 
+
   <script>
     tailwind.config = {
       theme: {
@@ -26,7 +29,7 @@
           },
           colors: {
             brand: {
-              50:  '#f0fdf6',
+              50: '#f0fdf6',
               100: '#dcfce9',
               200: '#bbf7d2',
               300: '#86efb0',
@@ -39,13 +42,13 @@
             },
             ink: {
               DEFAULT: '#0d1117',
-              soft:    '#1c2333',
-              muted:   '#3a4455',
+              soft: '#1c2333',
+              muted: '#3a4455',
             },
             surface: {
               DEFAULT: '#f8fafc',
-              card:    '#ffffff',
-              dark:    '#111827',
+              card: '#ffffff',
+              dark: '#111827',
             }
           },
           boxShadow: {
@@ -56,25 +59,30 @@
       }
     }
   </script>
- 
+
   <style>
     /* ── Base ──────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'DM Sans', sans-serif;
       background-color: #f8fafc;
       color: #0d1117;
       min-height: 100vh;
     }
- 
+
     /* ── Nav glass effect ──────────────────────────────── */
     .nav-glass {
-      background: rgba(248,250,252,0.82);
+      background: rgba(248, 250, 252, 0.82);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(34,197,94,0.10);
+      border-bottom: 1px solid rgba(34, 197, 94, 0.10);
     }
- 
+
     /* ── Nav link active pill ─────────────────────────── */
     .nav-link {
       position: relative;
@@ -88,24 +96,40 @@
       transition: color 0.2s, background 0.2s;
       cursor: pointer;
     }
-    .nav-link:hover { color: #16a34a; background: rgba(34,197,94,0.06); }
+
+    .nav-link:hover {
+      color: #16a34a;
+      background: rgba(34, 197, 94, 0.06);
+    }
+
     .nav-link.active {
       color: #ffffff;
       background: #16a34a;
-      box-shadow: 0 2px 12px rgba(22,163,74,0.30);
+      box-shadow: 0 2px 12px rgba(22, 163, 74, 0.30);
     }
- 
+
     /* ── View transitions ─────────────────────────────── */
     .view {
       display: none;
       animation: fadeUp 0.35s ease both;
     }
-    .view.active { display: block; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
+
+    .view.active {
+      display: block;
     }
- 
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     /* ── Gradient heading ─────────────────────────────── */
     .gradient-text {
       background: linear-gradient(135deg, #16a34a 0%, #4ade80 60%, #86efb0 100%);
@@ -113,20 +137,21 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
- 
+
     /* ── Bento card ───────────────────────────────────── */
     .bento-card {
       background: #ffffff;
       border-radius: 20px;
-      border: 1px solid rgba(34,197,94,0.10);
-      box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+      border: 1px solid rgba(34, 197, 94, 0.10);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
       transition: box-shadow 0.25s, transform 0.25s;
     }
+
     .bento-card:hover {
-      box-shadow: 0 8px 32px rgba(34,197,94,0.14);
+      box-shadow: 0 8px 32px rgba(34, 197, 94, 0.14);
       transform: translateY(-3px);
     }
- 
+
     /* ── Placeholder badge ────────────────────────────── */
     .placeholder-badge {
       display: inline-flex;
@@ -138,139 +163,179 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: #16a34a;
-      background: rgba(34,197,94,0.10);
-      border: 1px dashed rgba(34,197,94,0.35);
+      background: rgba(34, 197, 94, 0.10);
+      border: 1px dashed rgba(34, 197, 94, 0.35);
       padding: 4px 12px;
       border-radius: 999px;
     }
- 
+
     /* ── Hero background noise ────────────────────────── */
     .hero-bg {
       background:
-        radial-gradient(ellipse 80% 60% at 60% -10%, rgba(34,197,94,0.13) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 40% at 100% 80%, rgba(74,222,128,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 60% at 60% -10%, rgba(34, 197, 94, 0.13) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 100% 80%, rgba(74, 222, 128, 0.08) 0%, transparent 60%),
         #f8fafc;
     }
- 
+
     /* ── Mobile menu ──────────────────────────────────── */
     #mobile-menu {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s;
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s;
       opacity: 0;
     }
-    #mobile-menu.open { max-height: 320px; opacity: 1; }
- 
+
+    #mobile-menu.open {
+      max-height: 320px;
+      opacity: 1;
+    }
+
     /* ── Chat bubble placeholder ──────────────────────── */
     .chat-bubble-out {
       background: linear-gradient(135deg, #16a34a, #22c55e);
       color: white;
       border-radius: 18px 18px 4px 18px;
     }
+
     .chat-bubble-in {
       background: #ffffff;
-      border: 1px solid rgba(34,197,94,0.15);
+      border: 1px solid rgba(34, 197, 94, 0.15);
       border-radius: 18px 18px 18px 4px;
     }
- 
+
     /* ── Semàfor dots ─────────────────────────────────── */
-    .dot-green  { width:12px; height:12px; border-radius:50%; background:#22c55e; box-shadow:0 0 6px rgba(34,197,94,0.5); }
-    .dot-yellow { width:12px; height:12px; border-radius:50%; background:#facc15; box-shadow:0 0 6px rgba(250,204,21,0.5); }
-    .dot-red    { width:12px; height:12px; border-radius:50%; background:#f87171; box-shadow:0 0 6px rgba(248,113,113,0.5); }
+    .dot-green {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+    }
+
+    .dot-yellow {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #facc15;
+      box-shadow: 0 0 6px rgba(250, 204, 21, 0.5);
+    }
+
+    .dot-red {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #f87171;
+      box-shadow: 0 0 6px rgba(248, 113, 113, 0.5);
+    }
   </style>
 </head>
- 
+
 <body>
- 
+
   <!-- ══════════════════════════════════════════════
        NAVBAR — Fixed, glass, responsive
   ════════════════════════════════════════════════ -->
   <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
       <div class="flex items-center justify-between h-16">
- 
+
         <!-- Logo -->
         <button onclick="showView('inici')" class="flex items-center gap-2 group">
-          <div class="w-8 h-8 rounded-xl bg-brand-500 flex items-center justify-center shadow-glow-green group-hover:scale-105 transition-transform">
+          <div
+            class="w-8 h-8 rounded-xl bg-brand-500 flex items-center justify-center shadow-glow-green group-hover:scale-105 transition-transform">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 12 L8 4 L13 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M5.5 9 h5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M3 12 L8 4 L13 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <path d="M5.5 9 h5" stroke="white" stroke-width="1.5" stroke-linecap="round" />
             </svg>
           </div>
-          <span class="font-display font-800 text-base text-ink leading-none">Smart<span class="text-brand-500">Price</span></span>
+          <span class="font-display font-800 text-base text-ink leading-none">Smart<span
+              class="text-brand-500">Price</span></span>
         </button>
- 
+
         <!-- Desktop nav links -->
         <div class="hidden md:flex items-center gap-1">
-          <button class="nav-link active" id="nav-inici"       onclick="showView('inici')">Inici</button>
-          <button class="nav-link"        id="nav-pressupost"  onclick="showView('pressupost')">El meu Pressupost</button>
-          <button class="nav-link"        id="nav-comparador"  onclick="showView('comparador')">Comparador</button>
-          <button class="nav-link"        id="nav-assessor"    onclick="showView('assessor')">Assessor IA</button>
+          <button class="nav-link active" id="nav-inici" onclick="showView('inici')">Inici</button>
+          <button class="nav-link" id="nav-pressupost" onclick="showView('pressupost')">El meu Pressupost</button>
+          <button class="nav-link" id="nav-comparador" onclick="showView('comparador')">Comparador</button>
+          <button class="nav-link" id="nav-assessor" onclick="showView('assessor')">Assessor IA</button>
         </div>
- 
+
         <!-- CTA desktop -->
-        <div class="hidden md:flex items-center gap-3">
-          <button class="font-display font-600 text-sm text-ink-muted hover:text-ink transition-colors px-3 py-1.5">Entrar</button>
-          <button class="font-display font-700 text-sm text-white bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded-full shadow-glow-green transition-all hover:scale-105">
+        <div class="hidden md:flex items-center gap-3" id="auth-desktop">
+          <button onclick="showView('login')"
+            class="font-display font-600 text-sm text-ink-muted hover:text-ink transition-colors px-3 py-1.5">Entrar</button>
+          <button onclick="showView('register')"
+            class="font-display font-700 text-sm text-white bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded-full shadow-glow-green transition-all hover:scale-105">
             Registra't gratis
           </button>
         </div>
- 
+
         <!-- Hamburger (mobile) -->
-        <button id="hamburger" onclick="toggleMenu()" class="md:hidden p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-brand-50 transition-colors" aria-label="Menú">
+        <button id="hamburger" onclick="toggleMenu()"
+          class="md:hidden p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-brand-50 transition-colors"
+          aria-label="Menú">
           <i data-lucide="menu" class="w-5 h-5" id="icon-open"></i>
-          <i data-lucide="x"    class="w-5 h-5 hidden" id="icon-close"></i>
+          <i data-lucide="x" class="w-5 h-5 hidden" id="icon-close"></i>
         </button>
       </div>
     </div>
- 
+
     <!-- Mobile dropdown menu -->
     <div id="mobile-menu" class="md:hidden border-t border-brand-100/40">
       <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1">
-        <button class="nav-link text-left w-full active" id="mnav-inici"      onclick="showView('inici');toggleMenu()">Inici</button>
-        <button class="nav-link text-left w-full"        id="mnav-pressupost" onclick="showView('pressupost');toggleMenu()">El meu Pressupost</button>
-        <button class="nav-link text-left w-full"        id="mnav-comparador" onclick="showView('comparador');toggleMenu()">Comparador</button>
-        <button class="nav-link text-left w-full"        id="mnav-assessor"   onclick="showView('assessor');toggleMenu()">Assessor IA</button>
-        <div class="flex gap-2 pt-2 pb-1">
-          <button class="flex-1 font-display font-600 text-sm text-ink-muted border border-ink-muted/20 rounded-full py-2 hover:border-brand-400 transition-colors">Entrar</button>
-          <button class="flex-1 font-display font-700 text-sm text-white bg-brand-500 rounded-full py-2 hover:bg-brand-600 transition-colors">Registra't</button>
+        <button class="nav-link text-left w-full active" id="mnav-inici"
+          onclick="showView('inici');toggleMenu()">Inici</button>
+        <button class="nav-link text-left w-full" id="mnav-pressupost" onclick="showView('pressupost');toggleMenu()">El
+          meu Pressupost</button>
+        <button class="nav-link text-left w-full" id="mnav-comparador"
+          onclick="showView('comparador');toggleMenu()">Comparador</button>
+        <button class="nav-link text-left w-full" id="mnav-assessor"
+          onclick="showView('assessor');toggleMenu()">Assessor IA</button>
+        <div class="flex gap-2 pt-2 pb-1" id="auth-mobile">
+          <button onclick="showView('login');toggleMenu()"
+            class="flex-1 font-display font-600 text-sm text-ink-muted border border-ink-muted/20 rounded-full py-2 hover:border-brand-400 transition-colors">Entrar</button>
+          <button onclick="showView('register');toggleMenu()"
+            class="flex-1 font-display font-700 text-sm text-white bg-brand-500 rounded-full py-2 hover:bg-brand-600 transition-colors">Registra't</button>
         </div>
       </div>
     </div>
   </nav>
- 
+
   <!-- ══════════════════════════════════════════════
        MAIN CONTENT
   ════════════════════════════════════════════════ -->
   <main class="pt-16 min-h-screen">
- 
+
     <!-- ─────────────────────────────────────────────
          VISTA 1: INICI (Hero + Bento grid)
     ───────────────────────────────────────────── -->
     <section id="view-inici" class="view active">
- 
+
       <!-- Hero -->
       <div class="hero-bg px-4 sm:px-6 pt-20 pb-16">
         <div class="max-w-4xl mx-auto text-center">
- 
+
           <!-- Pill badge -->
           <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-full px-4 py-1.5 mb-8">
             <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
-            <span class="font-display font-700 text-xs text-brand-700 tracking-wider uppercase">Fet per a universitaris · Barcelona</span>
+            <span class="font-display font-700 text-xs text-brand-700 tracking-wider uppercase">Fet per a universitaris
+              · Barcelona</span>
           </div>
- 
+
           <!-- Headline -->
-          <h1 class="font-display font-800 text-5xl sm:text-6xl md:text-7xl leading-[1.05] tracking-tight text-ink mb-6">
-            Compara els teus<br/>
-            <span class="gradient-text">preus i estalvia</span><br/>
+          <h1
+            class="font-display font-800 text-5xl sm:text-6xl md:text-7xl leading-[1.05] tracking-tight text-ink mb-6">
+            Compara els teus<br />
+            <span class="gradient-text">preus i estalvia</span><br />
             a final de mes
           </h1>
- 
+
           <p class="font-body text-lg sm:text-xl text-ink-muted max-w-xl mx-auto mb-10 leading-relaxed">
             Controla el teu pressupost estudiantil, compara preus de supermercat en temps real
             i rep consells intel·ligents per arribar a final de mes sense estrès.
           </p>
- 
+
           <!-- CTA buttons -->
           <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <button onclick="showView('pressupost')"
@@ -284,7 +349,7 @@
               Veure el Comparador
             </button>
           </div>
- 
+
           <!-- Social proof -->
           <div class="flex items-center justify-center gap-6 mt-12 opacity-60">
             <div class="text-center">
@@ -304,14 +369,16 @@
           </div>
         </div>
       </div>
- 
+
       <!-- Bento grid — features -->
       <div class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
-        <p class="font-display font-700 text-sm text-brand-600 uppercase tracking-widest text-center mb-3">Funcionalitats principals</p>
-        <h2 class="font-display font-800 text-3xl sm:text-4xl text-ink text-center mb-12">Tot el que necessites,<br/>en un sol lloc</h2>
- 
+        <p class="font-display font-700 text-sm text-brand-600 uppercase tracking-widest text-center mb-3">
+          Funcionalitats principals</p>
+        <h2 class="font-display font-800 text-3xl sm:text-4xl text-ink text-center mb-12">Tot el que necessites,<br />en
+          un sol lloc</h2>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
- 
+
           <!-- Card 1 -->
           <div class="bento-card p-7 lg:col-span-2">
             <div class="w-11 h-11 rounded-2xl bg-brand-50 flex items-center justify-center mb-5">
@@ -319,13 +386,14 @@
             </div>
             <h3 class="font-display font-700 text-xl text-ink mb-2">Comparador de preus en temps real</h3>
             <p class="font-body text-sm text-ink-muted leading-relaxed">
-              Consulta i compara els preus dels supermercats del teu barri (Mercadona, Lidl, Bonpreu…) i descobreix on et surt més a compte fer la compra setmanal.
+              Consulta i compara els preus dels supermercats del teu barri (Mercadona, Lidl, Bonpreu…) i descobreix on
+              et surt més a compte fer la compra setmanal.
             </p>
             <span class="placeholder-badge mt-5 inline-flex">
               <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
             </span>
           </div>
- 
+
           <!-- Card 2 -->
           <div class="bento-card p-7 bg-ink flex flex-col justify-between" style="background:#0d1117;">
             <div class="w-11 h-11 rounded-2xl bg-brand-500/15 flex items-center justify-center mb-5">
@@ -333,13 +401,15 @@
             </div>
             <div>
               <h3 class="font-display font-700 text-xl text-white mb-2">Control del pressupost</h3>
-              <p class="font-body text-sm text-white/50 leading-relaxed">Defineix ingressos i despeses i veu en temps real fins on arriben els teus euros.</p>
+              <p class="font-body text-sm text-white/50 leading-relaxed">Defineix ingressos i despeses i veu en temps
+                real fins on arriben els teus euros.</p>
             </div>
-            <span class="placeholder-badge mt-5" style="color:#4ade80;background:rgba(74,222,128,0.10);border-color:rgba(74,222,128,0.3);">
+            <span class="placeholder-badge mt-5"
+              style="color:#4ade80;background:rgba(74,222,128,0.10);border-color:rgba(74,222,128,0.3);">
               <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
             </span>
           </div>
- 
+
           <!-- Card 3 -->
           <div class="bento-card p-7">
             <div class="w-11 h-11 rounded-2xl bg-amber-50 flex items-center justify-center mb-5">
@@ -347,13 +417,14 @@
             </div>
             <h3 class="font-display font-700 text-xl text-ink mb-2">Assessor IA</h3>
             <p class="font-body text-sm text-ink-muted leading-relaxed">
-              Pregunta-li al teu assistent personal quins productes escollir o com optimitzar la teva llista de la compra.
+              Pregunta-li al teu assistent personal quins productes escollir o com optimitzar la teva llista de la
+              compra.
             </p>
             <span class="placeholder-badge mt-5">
               <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
             </span>
           </div>
- 
+
           <!-- Card 4 -->
           <div class="bento-card p-7 sm:col-span-2 lg:col-span-2">
             <div class="w-11 h-11 rounded-2xl bg-violet-50 flex items-center justify-center mb-5">
@@ -361,18 +432,19 @@
             </div>
             <h3 class="font-display font-700 text-xl text-ink mb-2">Alertes d'oferta personalitzades</h3>
             <p class="font-body text-sm text-ink-muted leading-relaxed">
-              Rep una notificació quan el producte que compres habitualment baixi de preu al supermercat més proper. Mai et perdis una oferta.
+              Rep una notificació quan el producte que compres habitualment baixi de preu al supermercat més proper. Mai
+              et perdis una oferta.
             </p>
             <span class="placeholder-badge mt-5">
               <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
             </span>
           </div>
- 
+
         </div>
       </div>
     </section>
- 
- 
+
+
     <!-- ─────────────────────────────────────────────
          VISTA 2: EL MEU PRESSUPOST
     ───────────────────────────────────────────── -->
@@ -381,7 +453,8 @@
 
         <div class="mb-10">
           <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">El meu Pressupost</h1>
-          <p class="font-body text-lg text-ink-muted">Configura els teus ingressos mensuals i despeses fixes per obtenir recomanacions personalitzades.</p>
+          <p class="font-body text-lg text-ink-muted">Configura els teus ingressos mensuals i despeses fixes per obtenir
+            recomanacions personalitzades.</p>
         </div>
 
         <!-- FORMULARI PRINCIPAL -->
@@ -396,24 +469,22 @@
               <h2 class="font-display font-700 text-lg text-ink">Ingressos mensuals nets</h2>
             </div>
             <div class="flex flex-col gap-1.5">
-              <label for="ingressos-nets" class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Total d&apos;ingressos nets al mes (&euro;)</label>
+              <label for="ingressos-nets"
+                class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Total d&apos;ingressos nets al
+                mes (&euro;)</label>
               <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">&euro;</span>
-                <input
-                  id="ingressos-nets"
-                  type="number"
-                  min="0"
-                  step="1"
-                  placeholder="ex: 1000"
+                <span
+                  class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">&euro;</span>
+                <input id="ingressos-nets" type="number" min="0" step="1" placeholder="ex: 1000"
                   oninput="calcularBalanc()"
-                  class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 pl-9 pr-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors"
-                />
+                  class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 pl-9 pr-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
               </div>
-              <p class="font-body text-xs text-ink-muted/60">Suma aqui el teu sou net, beca, ajuda familiar i qualsevol altre ingres mensual.</p>
+              <p class="font-body text-xs text-ink-muted/60">Suma aqui el teu sou net, beca, ajuda familiar i qualsevol
+                altre ingres mensual.</p>
             </div>
           </div>
 
-          <hr class="border-ink-muted/10"/>
+          <hr class="border-ink-muted/10" />
 
           <!-- 2. DESPESES FIXES -->
           <div>
@@ -424,7 +495,8 @@
                 </div>
                 <h2 class="font-display font-700 text-lg text-ink">Despeses fixes mensuals</h2>
               </div>
-              <button onclick="afegirDespesa()" class="flex items-center gap-1.5 font-display font-700 text-xs text-brand-600 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+              <button onclick="afegirDespesa()"
+                class="flex items-center gap-1.5 font-display font-700 text-xs text-brand-600 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
                 <i data-lucide="plus" class="w-3 h-3"></i> Afegir
               </button>
             </div>
@@ -435,7 +507,7 @@
             </div>
           </div>
 
-          <hr class="border-ink-muted/10"/>
+          <hr class="border-ink-muted/10" />
 
           <!-- 3. META D'ESTALVI -->
           <div>
@@ -446,24 +518,20 @@
               <h2 class="font-display font-700 text-lg text-ink">Meta d&apos;estalvi mensual</h2>
             </div>
             <div class="flex flex-col gap-1.5">
-              <label for="meta-estalvi" class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Quant vols estalviar cada mes (&euro;)</label>
+              <label for="meta-estalvi" class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide">Quant
+                vols estalviar cada mes (&euro;)</label>
               <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">&euro;</span>
-                <input
-                  id="meta-estalvi"
-                  type="number"
-                  min="0"
-                  step="1"
-                  placeholder="ex: 150"
-                  oninput="calcularBalanc()"
-                  class="w-full h-12 rounded-xl border-2 border-violet-200 bg-violet-50/40 pl-9 pr-4 font-body text-sm text-ink placeholder-violet-300 focus:outline-none focus:border-violet-500 focus:bg-white transition-colors"
-                />
+                <span
+                  class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">&euro;</span>
+                <input id="meta-estalvi" type="number" min="0" step="1" placeholder="ex: 150" oninput="calcularBalanc()"
+                  class="w-full h-12 rounded-xl border-2 border-violet-200 bg-violet-50/40 pl-9 pr-4 font-body text-sm text-ink placeholder-violet-300 focus:outline-none focus:border-violet-500 focus:bg-white transition-colors" />
               </div>
-              <p class="font-body text-xs text-ink-muted/60">Defineix la quantitat minima que vols reservar al final de mes.</p>
+              <p class="font-body text-xs text-ink-muted/60">Defineix la quantitat minima que vols reservar al final de
+                mes.</p>
             </div>
           </div>
 
-          <hr class="border-ink-muted/10"/>
+          <hr class="border-ink-muted/10" />
 
           <div class="flex flex-col sm:flex-row gap-3">
             <button onclick="guardarPressupost()"
@@ -485,16 +553,19 @@
           </div>
 
           <!-- Toast "pròximament" -->
-          <div id="toast-guardar" class="hidden items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-3">
+          <div id="toast-guardar"
+            class="hidden items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-3">
             <i data-lucide="info" class="w-4 h-4 text-brand-500 flex-shrink-0"></i>
-            <p class="font-body text-sm text-brand-700">La funcionalitat de guardar estarà disponible pròximament. El pressupost es manté mentre no tanquis la pàgina.</p>
+            <p class="font-body text-sm text-brand-700">La funcionalitat de guardar estarà disponible pròximament. El
+              pressupost es manté mentre no tanquis la pàgina.</p>
           </div>
 
         </div>
 
         <!-- RESUM BALANC -->
         <div id="balanc-resum" class="hidden mt-6">
-          <div class="rounded-2xl p-6 border" id="balanc-card" style="background:#f0fdf6;border-color:rgba(34,197,94,0.2);">
+          <div class="rounded-2xl p-6 border" id="balanc-card"
+            style="background:#f0fdf6;border-color:rgba(34,197,94,0.2);">
             <p class="font-display font-700 text-xs text-brand-600 uppercase tracking-widest mb-4">Resum del mes</p>
             <div class="grid grid-cols-3 gap-4 mb-5">
               <div class="text-center">
@@ -516,7 +587,8 @@
                 <span class="font-display font-700 text-xs text-brand-600" id="resum-pct">0%</span>
               </div>
               <div class="h-3 rounded-full bg-brand-100 overflow-hidden">
-                <div id="barra-progres" class="h-full rounded-full bg-brand-500 transition-all duration-700" style="width:0%"></div>
+                <div id="barra-progres" class="h-full rounded-full bg-brand-500 transition-all duration-700"
+                  style="width:0%"></div>
               </div>
               <p class="font-body text-xs text-ink-muted/70 mt-1.5" id="resum-msg"></p>
             </div>
@@ -536,13 +608,15 @@
 
           <div id="viabilitat-bloc" class="hidden mt-3 rounded-2xl p-5 border">
             <div class="flex items-start gap-3">
-              <div id="viabilitat-icon-container" class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div id="viabilitat-icon-container"
+                class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
                 <i id="viabilitat-icon" data-lucide="activity" class="w-4 h-4"></i>
               </div>
               <div class="flex-1">
                 <div class="flex justify-between items-center mb-1">
                   <p class="font-display font-700 text-sm text-ink">Diagnòstic de Viabilitat</p>
-                  <span id="viabilitat-badge" class="font-display font-700 text-xs px-2 py-0.5 rounded-full border"></span>
+                  <span id="viabilitat-badge"
+                    class="font-display font-700 text-xs px-2 py-0.5 rounded-full border"></span>
                 </div>
                 <p class="font-body text-sm text-ink-muted leading-relaxed" id="viabilitat-text"></p>
               </div>
@@ -562,17 +636,18 @@
 
       </div>
     </section>
- 
- 
+
+
     <!-- ─────────────────────────────────────────────
          VISTA 3: DASHBOARD COMPARATIVA
     ───────────────────────────────────────────── -->
     <section id="view-comparador" class="view">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 py-20">
- 
+
         <div class="mb-10">
           <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">Preus de Mercat</h1>
-          <p class="font-body text-lg text-ink-muted">Tria una categoria per conèixer els preus actualitzats a la teva zona.</p>
+          <p class="font-body text-lg text-ink-muted">Tria una categoria per conèixer els preus actualitzats a la teva
+            zona.</p>
         </div>
 
         <!-- Navegació per categories -->
@@ -586,7 +661,8 @@
         <div id="comparador-results" class="hidden">
           <div class="flex items-center gap-3 mb-6">
             <h2 id="comparador-cat-title" class="font-display font-800 text-2xl text-ink capitalize"></h2>
-            <span class="inline-flex items-center gap-1.5 bg-brand-50 border border-brand-200 text-brand-700 text-xs font-display font-700 px-3 py-1 rounded-full">
+            <span
+              class="inline-flex items-center gap-1.5 bg-brand-50 border border-brand-200 text-brand-700 text-xs font-display font-700 px-3 py-1 rounded-full">
               <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
               Actualitzat
             </span>
@@ -616,8 +692,8 @@
         </div>
       </div>
     </section>
- 
- 
+
+
     <!-- ─────────────────────────────────────────────
          VISTA 4: ASSESSOR IA — Funcional
     ───────────────────────────────────────────── -->
@@ -628,7 +704,8 @@
         <div class="mb-8 text-center">
           <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-full px-4 py-1.5 mb-5">
             <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
-            <span class="font-display font-700 text-xs text-brand-700 tracking-wider uppercase">En línia · Powered by Claude AI</span>
+            <span class="font-display font-700 text-xs text-brand-700 tracking-wider uppercase">En línia · Powered by
+              Claude AI</span>
           </div>
           <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mb-3">Assessor IA</h1>
           <p class="font-body text-base text-ink-muted max-w-md mx-auto">
@@ -660,7 +737,8 @@
           </div>
 
           <!-- Messages area -->
-          <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4 bg-surface" style="max-height:420px; scroll-behavior:smooth;">
+          <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4 bg-surface"
+            style="max-height:420px; scroll-behavior:smooth;">
 
             <!-- Welcome message -->
             <div class="flex gap-3" id="msg-welcome">
@@ -673,9 +751,12 @@
                     Hola! 👋 Soc el teu assessor de pressupost. Escriu-me una petició com ara:
                   </p>
                   <ul class="mt-2 space-y-1">
-                    <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Busca'm gimnasos per menys de 30€/mes"</em></li>
-                    <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Plataformes de streaming per menys de 10€"</em></li>
-                    <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Transport públic mensual a Barcelona"</em></li>
+                    <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span
+                        class="text-brand-500 mt-0.5">›</span> <em>"Busca'm gimnasos per menys de 30€/mes"</em></li>
+                    <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span
+                        class="text-brand-500 mt-0.5">›</span> <em>"Plataformes de streaming per menys de 10€"</em></li>
+                    <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span
+                        class="text-brand-500 mt-0.5">›</span> <em>"Transport públic mensual a Barcelona"</em></li>
                   </ul>
                 </div>
               </div>
@@ -718,15 +799,10 @@
 
           <!-- Input bar -->
           <div class="px-4 py-3 border-t border-ink-muted/10 bg-white flex items-end gap-2 flex-shrink-0">
-            <textarea
-              id="chat-input"
-              rows="1"
-              placeholder='Ex: "Busca\'m cadenes de gimnasos per menys de 30€ al mes"'
-              onkeydown="handleChatKey(event)"
-              oninput="autoResizeTextarea(this)"
+            <textarea id="chat-input" rows="1" placeholder='Ex: "Busca\' m cadenes de gimnasos per menys de 30€ al mes"'
+              onkeydown="handleChatKey(event)" oninput="autoResizeTextarea(this)"
               class="flex-1 rounded-2xl border-2 border-brand-200 bg-brand-50/30 px-4 py-2.5 font-body text-sm text-ink placeholder-brand-300/70 focus:outline-none focus:border-brand-400 focus:bg-white transition-colors resize-none overflow-hidden leading-relaxed"
-              style="max-height:96px;"
-            ></textarea>
+              style="max-height:96px;"></textarea>
             <button id="chat-send-btn" onclick="sendMessage()"
               class="w-10 h-10 rounded-full bg-brand-500 hover:bg-brand-600 flex-shrink-0 flex items-center justify-center shadow-glow-green transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
               title="Enviar (Enter)">
@@ -741,10 +817,98 @@
         </p>
       </div>
     </section>
- 
+
+    <!-- ─────────────────────────────────────────────
+         VISTA 5: LOGIN
+    ───────────────────────────────────────────── -->
+    <section id="view-login" class="view">
+      <div class="max-w-md mx-auto px-4 sm:px-6 py-20">
+        <div class="bento-card p-8 sm:p-10">
+          <div class="text-center mb-8">
+            <h1 class="font-display font-800 text-3xl text-ink mb-2">Benvingut de nou</h1>
+            <p class="font-body text-sm text-ink-muted">Inicia sessió per continuar estalviant</p>
+          </div>
+          
+          <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+            <div class="space-y-1.5">
+              <label for="login-email" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Correu electrònic</label>
+              <input type="email" id="login-email" required placeholder="nom@exemple.com" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+            </div>
+            
+            <div class="space-y-1.5">
+              <div class="flex justify-between items-center">
+                <label for="login-password" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Contrasenya</label>
+                <a href="#" class="font-body text-xs text-brand-600 hover:underline">Has oblidat la contrasenya?</a>
+              </div>
+              <input type="password" id="login-password" required placeholder="••••••••" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+            </div>
+            
+            <button type="submit" class="w-full h-12 rounded-xl bg-brand-500 hover:bg-brand-600 font-display font-700 text-sm text-white shadow-glow-green transition-all hover:scale-[1.02] flex items-center justify-center gap-2 mt-4">
+              <i data-lucide="log-in" class="w-4 h-4"></i>
+              Entrar
+            </button>
+          </form>
+          
+          <div class="mt-6 pt-6 border-t border-ink-muted/10 text-center">
+            <p class="font-body text-sm text-ink-muted">
+              No tens compte? <button onclick="showView('register')" class="font-display font-700 text-brand-600 hover:underline">Registra't gratis</button>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────
+         VISTA 6: REGISTER
+    ───────────────────────────────────────────── -->
+    <section id="view-register" class="view">
+      <div class="max-w-md mx-auto px-4 sm:px-6 py-20">
+        <div class="bento-card p-8 sm:p-10">
+          <div class="text-center mb-8">
+            <h1 class="font-display font-800 text-3xl text-ink mb-2">Crea el teu compte</h1>
+            <p class="font-body text-sm text-ink-muted">Comença a controlar les teves finances avui</p>
+          </div>
+          
+          <form id="register-form" onsubmit="handleRegister(event)" class="space-y-5">
+            <div class="space-y-1.5">
+              <label for="register-name" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Nom complet</label>
+              <input type="text" id="register-name" required placeholder="Ex: Joan Garcia" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+            </div>
+            
+            <div class="space-y-1.5">
+              <label for="register-email" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Correu electrònic</label>
+              <input type="email" id="register-email" required placeholder="nom@exemple.com" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+            </div>
+            
+            <div class="space-y-1.5">
+              <label for="register-password" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Contrasenya</label>
+              <input type="password" id="register-password" required placeholder="Mínim 8 caràcters" minlength="8" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+            </div>
+            
+            <button type="submit" class="w-full h-12 rounded-xl bg-brand-500 hover:bg-brand-600 font-display font-700 text-sm text-white shadow-glow-green transition-all hover:scale-[1.02] flex items-center justify-center gap-2 mt-4">
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+              Registrar-se
+            </button>
+          </form>
+          
+          <div class="mt-6 pt-6 border-t border-ink-muted/10 text-center">
+            <p class="font-body text-sm text-ink-muted">
+              Ja tens compte? <button onclick="showView('login')" class="font-display font-700 text-brand-600 hover:underline">Entra aquí</button>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
- 
- 
+
+  <!-- Global Toast -->
+  <div id="global-toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-4 shadow-lg transform transition-all translate-y-10 opacity-0">
+    <i id="global-toast-icon" data-lucide="check-circle" class="w-5 h-5 text-brand-500 flex-shrink-0"></i>
+    <p id="global-toast-msg" class="font-body text-sm font-500 text-brand-800"></p>
+  </div>
+
+
   <!-- ══════════════════════════════════════════════
        FOOTER
   ════════════════════════════════════════════════ -->
@@ -753,8 +917,9 @@
       <div class="flex items-center gap-2">
         <div class="w-6 h-6 rounded-lg bg-brand-500 flex items-center justify-center">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-            <path d="M3 12 L8 4 L13 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M5.5 9 h5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M3 12 L8 4 L13 12" stroke="white" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M5.5 9 h5" stroke="white" stroke-width="1.5" stroke-linecap="round" />
           </svg>
         </div>
         <span class="font-display font-700 text-sm text-ink">SmartPrice Comparator</span>
@@ -767,18 +932,18 @@
       </div>
     </div>
   </footer>
- 
- 
+
+
   <!-- ══════════════════════════════════════════════
        JAVASCRIPT — Routing + Nav + Menu
   ════════════════════════════════════════════════ -->
   <script>
     // ── View routing ──────────────────────────────
-    const views   = ['inici','pressupost','comparador','assessor'];
-    const navIds  = ['inici','pressupost','comparador','assessor'];
-    const navDesktop = { inici:'nav-inici', pressupost:'nav-pressupost', comparador:'nav-comparador', assessor:'nav-assessor' };
-    const navMobile  = { inici:'mnav-inici', pressupost:'mnav-pressupost', comparador:'mnav-comparador', assessor:'mnav-assessor' };
- 
+    const views = ['inici', 'pressupost', 'comparador', 'assessor', 'login', 'register'];
+    const navIds = ['inici', 'pressupost', 'comparador', 'assessor'];
+    const navDesktop = { inici: 'nav-inici', pressupost: 'nav-pressupost', comparador: 'nav-comparador', assessor: 'nav-assessor' };
+    const navMobile = { inici: 'mnav-inici', pressupost: 'mnav-pressupost', comparador: 'mnav-comparador', assessor: 'mnav-assessor' };
+
     function showView(name) {
       // toggle views
       views.forEach(v => {
@@ -798,24 +963,25 @@
       // scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
- 
+
     // ── Mobile hamburger ──────────────────────────
     let menuOpen = false;
     function toggleMenu() {
       menuOpen = !menuOpen;
-      const menu   = document.getElementById('mobile-menu');
-      const iOpen  = document.getElementById('icon-open');
+      const menu = document.getElementById('mobile-menu');
+      const iOpen = document.getElementById('icon-open');
       const iClose = document.getElementById('icon-close');
       menu.classList.toggle('open', menuOpen);
       iOpen.classList.toggle('hidden', menuOpen);
       iClose.classList.toggle('hidden', !menuOpen);
     }
- 
+
     // ── Init Lucide icons ─────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide) lucide.createIcons();
       initDespesesPerDefecte();
       initComparador();
+      checkSession();
     });
 
     // ══════════════════════════════════════════════
@@ -834,97 +1000,97 @@
     // Qualsevol paraula clau aquí remapeja a la categoria destí
     const ALIAS = {
       // Piscines
-      'piscina':'piscines', 'piscines':'piscines', 'natacio':'piscines', 'nadar':'piscines',
-      'aquatic':'piscines', 'aquatics':'piscines', 'pisci':'piscines',
+      'piscina': 'piscines', 'piscines': 'piscines', 'natacio': 'piscines', 'nadar': 'piscines',
+      'aquatic': 'piscines', 'aquatics': 'piscines', 'pisci': 'piscines',
       // Gimnàs
-      'gimnas':'gimnas', 'gimnasio':'gimnas', 'gym':'gimnas', 'fitness':'gimnas',
-      'crossfit':'gimnas', 'pilates':'gimnas', 'yoga':'gimnas', 'zumba':'gimnas',
-      'musculacio':'gimnas', 'pessos':'gimnas', 'cardio':'gimnas', 'sport':'gimnas',
+      'gimnas': 'gimnas', 'gimnasio': 'gimnas', 'gym': 'gimnas', 'fitness': 'gimnas',
+      'crossfit': 'gimnas', 'pilates': 'gimnas', 'yoga': 'gimnas', 'zumba': 'gimnas',
+      'musculacio': 'gimnas', 'pessos': 'gimnas', 'cardio': 'gimnas', 'sport': 'gimnas',
       // Streaming vídeo
-      'netflix':'streaming-video', 'hbo':'streaming-video', 'disney':'streaming-video',
-      'prime video':'streaming-video', 'movistar plus':'streaming-video', 'filmin':'streaming-video',
-      'series':'streaming-video', 'serie':'streaming-video', 'pelicula':'streaming-video',
-      'pel licula':'streaming-video', 'cinema casa':'streaming-video', 'streaming':'streaming-video',
-      'plataforma video':'streaming-video', 'vod':'streaming-video',
+      'netflix': 'streaming-video', 'hbo': 'streaming-video', 'disney': 'streaming-video',
+      'prime video': 'streaming-video', 'movistar plus': 'streaming-video', 'filmin': 'streaming-video',
+      'series': 'streaming-video', 'serie': 'streaming-video', 'pelicula': 'streaming-video',
+      'pel licula': 'streaming-video', 'cinema casa': 'streaming-video', 'streaming': 'streaming-video',
+      'plataforma video': 'streaming-video', 'vod': 'streaming-video',
       // Streaming música
-      'spotify':'streaming-musica', 'musica':'streaming-musica', 'podcast':'streaming-musica',
-      'apple music':'streaming-musica', 'tidal':'streaming-musica', 'deezer':'streaming-musica',
-      'canco':'streaming-musica', 'cancons':'streaming-musica',
+      'spotify': 'streaming-musica', 'musica': 'streaming-musica', 'podcast': 'streaming-musica',
+      'apple music': 'streaming-musica', 'tidal': 'streaming-musica', 'deezer': 'streaming-musica',
+      'canco': 'streaming-musica', 'cancons': 'streaming-musica',
       // Transport públic
-      'metro':'transport', 'bus':'transport', 'autobus':'transport', 'tren':'transport',
-      'rodalies':'transport', 'fgc':'transport', 'tmb':'transport', 'transport':'transport',
-      't-usual':'transport', 't-jove':'transport', 'targeta transport':'transport',
-      'abonament':'transport', 'viatge':'transport',
+      'metro': 'transport', 'bus': 'transport', 'autobus': 'transport', 'tren': 'transport',
+      'rodalies': 'transport', 'fgc': 'transport', 'tmb': 'transport', 'transport': 'transport',
+      't-usual': 'transport', 't-jove': 'transport', 'targeta transport': 'transport',
+      'abonament': 'transport', 'viatge': 'transport',
       // Bicing / bicicleta
-      'bicing':'bici', 'bicicleta':'bici', 'bici':'bici', 'ciclisme':'bici',
-      'bicis':'bici', 'bici electrica':'bici',
+      'bicing': 'bici', 'bicicleta': 'bici', 'bici': 'bici', 'ciclisme': 'bici',
+      'bicis': 'bici', 'bici electrica': 'bici',
       // Patinets / mobilitat
-      'patinet':'patinets', 'patinets':'patinets', 'scooter':'patinets', 'voi':'patinets',
-      'lime':'patinets', 'bolt':'patinets', 'mobilitat':'patinets',
+      'patinet': 'patinets', 'patinets': 'patinets', 'scooter': 'patinets', 'voi': 'patinets',
+      'lime': 'patinets', 'bolt': 'patinets', 'mobilitat': 'patinets',
       // Mòbil
-      'mobil':'mobil', 'telefon':'mobil', 'tarifa':'mobil', 'sim':'mobil',
-      'gigas':'mobil', 'gb':'mobil', 'trucades':'mobil', '4g':'mobil', '5g':'mobil',
-      'operadora':'mobil', 'vodafone':'mobil', 'movistar':'mobil', 'orange':'mobil',
-      'yoigo':'mobil', 'digi':'mobil', 'amena':'mobil', 'jazztel':'mobil', 'simyo':'mobil',
+      'mobil': 'mobil', 'telefon': 'mobil', 'tarifa': 'mobil', 'sim': 'mobil',
+      'gigas': 'mobil', 'gb': 'mobil', 'trucades': 'mobil', '4g': 'mobil', '5g': 'mobil',
+      'operadora': 'mobil', 'vodafone': 'mobil', 'movistar': 'mobil', 'orange': 'mobil',
+      'yoigo': 'mobil', 'digi': 'mobil', 'amena': 'mobil', 'jazztel': 'mobil', 'simyo': 'mobil',
       // Internet fibra
-      'fibra':'internet', 'internet':'internet', 'wifi casa':'internet', 'adsl':'internet',
-      'router':'internet', 'connexio internet':'internet', 'banda ampla':'internet',
+      'fibra': 'internet', 'internet': 'internet', 'wifi casa': 'internet', 'adsl': 'internet',
+      'router': 'internet', 'connexio internet': 'internet', 'banda ampla': 'internet',
       // Lloguer pis
-      'pis':'lloguer', 'habitacio':'lloguer', 'lloguer':'lloguer', 'apartament':'lloguer',
-      'estudi':'lloguer', 'habitatge':'lloguer', 'alquiler':'lloguer', 'flat':'lloguer',
-      'residencia':'lloguer', 'residencies':'lloguer',
+      'pis': 'lloguer', 'habitacio': 'lloguer', 'lloguer': 'lloguer', 'apartament': 'lloguer',
+      'estudi': 'lloguer', 'habitatge': 'lloguer', 'alquiler': 'lloguer', 'flat': 'lloguer',
+      'residencia': 'lloguer', 'residencies': 'lloguer',
       // Coworking
-      'coworking':'coworking', 'espai treball':'coworking', 'oficina':'coworking',
-      'desk':'coworking', 'hot desk':'coworking', 'espai compartit':'coworking',
+      'coworking': 'coworking', 'espai treball': 'coworking', 'oficina': 'coworking',
+      'desk': 'coworking', 'hot desk': 'coworking', 'espai compartit': 'coworking',
       // Alimentació / supermercats
-      'supermercat':'supermercats', 'super':'supermercats', 'alimentacio':'supermercats',
-      'compra':'supermercats', 'mercat':'supermercats', 'aliments':'supermercats',
-      'menjar casa':'supermercats', 'lidl':'supermercats', 'aldi':'supermercats',
-      'mercadona':'supermercats', 'condis':'supermercats', 'bonpreu':'supermercats',
+      'supermercat': 'supermercats', 'super': 'supermercats', 'alimentacio': 'supermercats',
+      'compra': 'supermercats', 'mercat': 'supermercats', 'aliments': 'supermercats',
+      'menjar casa': 'supermercats', 'lidl': 'supermercats', 'aldi': 'supermercats',
+      'mercadona': 'supermercats', 'condis': 'supermercats', 'bonpreu': 'supermercats',
       // Restaurants / menjar fora
-      'restaurant':'restaurants', 'menu':'restaurants', 'dinar':'restaurants',
-      'sopar':'restaurants', 'menjar fora':'restaurants', 'bar':'restaurants',
-      'cafeteria':'restaurants', 'pizza':'restaurants', 'kebab':'restaurants',
-      'hamburguesa':'restaurants', 'tapes':'restaurants', 'entrepà':'restaurants',
+      'restaurant': 'restaurants', 'menu': 'restaurants', 'dinar': 'restaurants',
+      'sopar': 'restaurants', 'menjar fora': 'restaurants', 'bar': 'restaurants',
+      'cafeteria': 'restaurants', 'pizza': 'restaurants', 'kebab': 'restaurants',
+      'hamburguesa': 'restaurants', 'tapes': 'restaurants', 'entrepà': 'restaurants',
       // Cafès
-      'cafe':'cafes', 'cafes':'cafes', 'cafeteria':'cafes', 'te':'cafes',
-      'cappuccino':'cafes', 'espresso':'cafes', 'llet':'cafes',
+      'cafe': 'cafes', 'cafes': 'cafes', 'cafeteria': 'cafes', 'te': 'cafes',
+      'cappuccino': 'cafes', 'espresso': 'cafes', 'llet': 'cafes',
       // Assegurança salut
-      'asseguranca salut':'asseguranca-salut', 'mutua':'asseguranca-salut',
-      'asseguranca medica':'asseguranca-salut', 'metge privat':'asseguranca-salut',
-      'clinica privada':'asseguranca-salut', 'sanitas':'asseguranca-salut',
-      'adeslas':'asseguranca-salut', 'asisa':'asseguranca-salut',
+      'asseguranca salut': 'asseguranca-salut', 'mutua': 'asseguranca-salut',
+      'asseguranca medica': 'asseguranca-salut', 'metge privat': 'asseguranca-salut',
+      'clinica privada': 'asseguranca-salut', 'sanitas': 'asseguranca-salut',
+      'adeslas': 'asseguranca-salut', 'asisa': 'asseguranca-salut',
       // Dental
-      'dents':'dental', 'dental':'dental', 'dentista':'dental', 'ortodon':'dental',
-      'bracket':'dental', 'revisio dental':'dental', 'neteja dental':'dental',
+      'dents': 'dental', 'dental': 'dental', 'dentista': 'dental', 'ortodon': 'dental',
+      'bracket': 'dental', 'revisio dental': 'dental', 'neteja dental': 'dental',
       // Perruqueria
-      'perruqueria':'perruqueria', 'cabell':'perruqueria', 'tall cabell':'perruqueria',
-      'barber':'perruqueria', 'barberia':'perruqueria', 'tint':'perruqueria',
-      'haircut':'perruqueria', 'perruquer':'perruqueria',
+      'perruqueria': 'perruqueria', 'cabell': 'perruqueria', 'tall cabell': 'perruqueria',
+      'barber': 'perruqueria', 'barberia': 'perruqueria', 'tint': 'perruqueria',
+      'haircut': 'perruqueria', 'perruquer': 'perruqueria',
       // Farmàcia
-      'farmacia':'farmacia', 'medicament':'farmacia', 'pastilla':'farmacia',
-      'antibiotic':'farmacia', 'paracetamol':'farmacia', 'crema':'farmacia',
+      'farmacia': 'farmacia', 'medicament': 'farmacia', 'pastilla': 'farmacia',
+      'antibiotic': 'farmacia', 'paracetamol': 'farmacia', 'crema': 'farmacia',
       // Idiomes
-      'idiomes':'idiomes', 'angles':'idiomes', 'english':'idiomes', 'frances':'idiomes',
-      'alemany':'idiomes', 'italia':'idiomes', 'classe idiomes':'idiomes',
-      'academia idiomes':'idiomes', 'curs idiomes':'idiomes',
+      'idiomes': 'idiomes', 'angles': 'idiomes', 'english': 'idiomes', 'frances': 'idiomes',
+      'alemany': 'idiomes', 'italia': 'idiomes', 'classe idiomes': 'idiomes',
+      'academia idiomes': 'idiomes', 'curs idiomes': 'idiomes',
       // Formació / cursos
-      'curs':'formacio', 'cursos':'formacio', 'formacio':'formacio', 'academia':'formacio',
-      'online learning':'formacio', 'udemy':'formacio', 'coursera':'formacio',
-      'certificat':'formacio', 'master online':'formacio',
+      'curs': 'formacio', 'cursos': 'formacio', 'formacio': 'formacio', 'academia': 'formacio',
+      'online learning': 'formacio', 'udemy': 'formacio', 'coursera': 'formacio',
+      'certificat': 'formacio', 'master online': 'formacio',
       // Gaming / videojocs
-      'videojoc':'gaming', 'gaming':'gaming', 'joc':'gaming', 'playstation':'gaming',
-      'xbox':'gaming', 'nintendo':'gaming', 'steam':'gaming', 'gamepass':'gaming',
-      'ps plus':'gaming', 'consola':'gaming',
+      'videojoc': 'gaming', 'gaming': 'gaming', 'joc': 'gaming', 'playstation': 'gaming',
+      'xbox': 'gaming', 'nintendo': 'gaming', 'steam': 'gaming', 'gamepass': 'gaming',
+      'ps plus': 'gaming', 'consola': 'gaming',
       // Aparcament
-      'aparcament':'aparcament', 'parking':'aparcament', 'garatge':'aparcament',
-      'aparcar':'aparcament', 'moto aparcament':'aparcament',
+      'aparcament': 'aparcament', 'parking': 'aparcament', 'garatge': 'aparcament',
+      'aparcar': 'aparcament', 'moto aparcament': 'aparcament',
       // Roba / moda
-      'roba':'roba', 'moda':'roba', 'zara':'roba', 'hm':'roba', 'shein':'roba',
-      'vinted':'roba', 'roba segona ma':'roba', 'subscripcio roba':'roba',
+      'roba': 'roba', 'moda': 'roba', 'zara': 'roba', 'hm': 'roba', 'shein': 'roba',
+      'vinted': 'roba', 'roba segona ma': 'roba', 'subscripcio roba': 'roba',
       // Viatges / vacances
-      'viatge':'viatges', 'vacances':'viatges', 'hotel':'viatges', 'vueling':'viatges',
-      'ryanair':'viatges', 'vol':'viatges', 'hostal':'viatges', 'airbnb':'viatges',
+      'viatge': 'viatges', 'vacances': 'viatges', 'hotel': 'viatges', 'vueling': 'viatges',
+      'ryanair': 'viatges', 'vol': 'viatges', 'hostal': 'viatges', 'airbnb': 'viatges',
     };
 
     // ── Base de dades de categories ───────────────
@@ -933,22 +1099,30 @@
       piscines: {
         label: 'piscines municipals',
         options: [
-          { name:'Piscines Municipals BCN (CM)', price:11.30, priceLabel:'11,30€/mes',
-            badge:'Millor preu',
-            description:'Xarxa de piscines cobertes de l\'Ajuntament de Barcelona. Abonament mensual per al barri.',
-            details:'Centres com Can Dragó, Piscina del Carmel, Joan Miró, Neptú i 20+ més.' },
-          { name:'Esportiu Municipal (accés complet)', price:22.50, priceLabel:'22,50€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Abonament als centres esportius municipals (CEM) amb accés a piscina + gimnàs.',
-            details:'CEM Olímpic de la Vall d\'Hebron, CEM Mar Bella, CEM Espanya Industrial i altres.' },
-          { name:'DIR amb piscina', price:29.90, priceLabel:'29,90€/mes',
-            badge:'Recomanat',
-            description:'Centres DIR seleccionats inclouen piscina coberta + sala de fitness + classes.',
-            details:'DIR Claris, DIR Diagonal, DIR Bac de Roda disposen de piscina.' },
-          { name:'Holmes Place Premium', price:49.90, priceLabel:'49,90€/mes',
-            badge:'Més popular',
-            description:'Piscina olímpica, spa, sauna i àmplies instal·lacions. Experiència premium.',
-            details:'Centres a Passeig de Gràcia i Diagonal amb piscina coberta.' },
+          {
+            name: 'Piscines Municipals BCN (CM)', price: 11.30, priceLabel: '11,30€/mes',
+            badge: 'Millor preu',
+            description: 'Xarxa de piscines cobertes de l\'Ajuntament de Barcelona. Abonament mensual per al barri.',
+            details: 'Centres com Can Dragó, Piscina del Carmel, Joan Miró, Neptú i 20+ més.'
+          },
+          {
+            name: 'Esportiu Municipal (accés complet)', price: 22.50, priceLabel: '22,50€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Abonament als centres esportius municipals (CEM) amb accés a piscina + gimnàs.',
+            details: 'CEM Olímpic de la Vall d\'Hebron, CEM Mar Bella, CEM Espanya Industrial i altres.'
+          },
+          {
+            name: 'DIR amb piscina', price: 29.90, priceLabel: '29,90€/mes',
+            badge: 'Recomanat',
+            description: 'Centres DIR seleccionats inclouen piscina coberta + sala de fitness + classes.',
+            details: 'DIR Claris, DIR Diagonal, DIR Bac de Roda disposen de piscina.'
+          },
+          {
+            name: 'Holmes Place Premium', price: 49.90, priceLabel: '49,90€/mes',
+            badge: 'Més popular',
+            description: 'Piscina olímpica, spa, sauna i àmplies instal·lacions. Experiència premium.',
+            details: 'Centres a Passeig de Gràcia i Diagonal amb piscina coberta.'
+          },
         ],
         tip: 'Les piscines municipals de l\'Ajuntament (CM) són de lluny les més barates. Truca al centre del teu barri per confirmar disponibilitat.'
       },
@@ -956,26 +1130,36 @@
       gimnas: {
         label: 'gimnàs i fitness',
         options: [
-          { name:'Altafit / McFit', price:19.90, priceLabel:'19,90€/mes',
-            badge:'Millor preu',
-            description:'Cadena de baix cost amb bona qualitat. Sense permanència ni matrícula.',
-            details:'Ubicacions a Sant Andreu, Nou Barris, Horta, Sants i Poblenou.' },
-          { name:'DIR Clàssic', price:22.90, priceLabel:'22,90€/mes',
-            badge:'Econòmic',
-            description:'Accés a la xarxa de centres DIR a Barcelona. Tarifa mensual flexible.',
-            details:'30+ centres. Classes grupals, sala de pesos i zona cardio incloses.' },
-          { name:'Anytime Fitness', price:24.90, priceLabel:'24,90€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Obert 24h/7 dies. Accés amb clau a qualsevol centre del món.',
-            details:'Ubicacions al centre, Sants, Les Corts i Poblenou.' },
-          { name:'VivaGym', price:27.90, priceLabel:'27,90€/mes',
-            badge:'Recomanat',
-            description:'Classes il·limitades incloses: spinning, body pump, funcional, ioga.',
-            details:'Centres moderns a Eixample, Gràcia i Sarrià-Sant Gervasi.' },
-          { name:'Holmes Place', price:49.90, priceLabel:'49,90€/mes',
-            badge:'Premium',
-            description:'Gimnàs premium amb piscina, spa, sauna i personal trainer.',
-            details:'Centres a Diagonal, Passeig de Gràcia i Pedralbes.' },
+          {
+            name: 'Altafit / McFit', price: 19.90, priceLabel: '19,90€/mes',
+            badge: 'Millor preu',
+            description: 'Cadena de baix cost amb bona qualitat. Sense permanència ni matrícula.',
+            details: 'Ubicacions a Sant Andreu, Nou Barris, Horta, Sants i Poblenou.'
+          },
+          {
+            name: 'DIR Clàssic', price: 22.90, priceLabel: '22,90€/mes',
+            badge: 'Econòmic',
+            description: 'Accés a la xarxa de centres DIR a Barcelona. Tarifa mensual flexible.',
+            details: '30+ centres. Classes grupals, sala de pesos i zona cardio incloses.'
+          },
+          {
+            name: 'Anytime Fitness', price: 24.90, priceLabel: '24,90€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Obert 24h/7 dies. Accés amb clau a qualsevol centre del món.',
+            details: 'Ubicacions al centre, Sants, Les Corts i Poblenou.'
+          },
+          {
+            name: 'VivaGym', price: 27.90, priceLabel: '27,90€/mes',
+            badge: 'Recomanat',
+            description: 'Classes il·limitades incloses: spinning, body pump, funcional, ioga.',
+            details: 'Centres moderns a Eixample, Gràcia i Sarrià-Sant Gervasi.'
+          },
+          {
+            name: 'Holmes Place', price: 49.90, priceLabel: '49,90€/mes',
+            badge: 'Premium',
+            description: 'Gimnàs premium amb piscina, spa, sauna i personal trainer.',
+            details: 'Centres a Diagonal, Passeig de Gràcia i Pedralbes.'
+          },
         ],
         tip: 'Molts gimnàs fan el primer mes gratis o sense matrícula si et domicilies. Demana sempre la promoció d\'entrada.'
       },
@@ -983,26 +1167,36 @@
       'streaming-video': {
         label: 'streaming de vídeo',
         options: [
-          { name:'Netflix (amb anuncis)', price:4.99, priceLabel:'4,99€/mes',
-            badge:'Millor preu',
-            description:'Catàleg complet de Netflix en HD amb anuncis puntuals (4-5 min/hora).',
-            details:'2 pantalles simultànies. La millor opció si el pressupost és el criteri.' },
-          { name:'Amazon Prime Video', price:4.99, priceLabel:'4,99€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Inclou Prime Video + enviaments Amazon gratuïts + Prime Music.',
-            details:'Pla anual: 49,90€/any = 4,16€/mes efectiu.' },
-          { name:'HBO Max (Bàsic)', price:5.99, priceLabel:'5,99€/mes',
-            badge:'Recomanat',
-            description:'Tot el catàleg HBO, Warner, DC i Max Originals. Qualitat HD.',
-            details:'El millor per a sèries de qualitat i cinema d\'autor.' },
-          { name:'Disney+', price:5.99, priceLabel:'5,99€/mes',
-            badge:'Econòmic',
-            description:'Marvel, Star Wars, Pixar, Disney i National Geographic.',
-            details:'Pla Estàndard HD compartible amb membres de la llar.' },
-          { name:'Filmin', price:8.99, priceLabel:'8,99€/mes',
-            badge:'Especial',
-            description:'Cinema independent, europeu i de festival. Única plataforma amb molt contingut en català.',
-            details:'Catàleg molt curiós per a amants del cinema de qualitat.' },
+          {
+            name: 'Netflix (amb anuncis)', price: 4.99, priceLabel: '4,99€/mes',
+            badge: 'Millor preu',
+            description: 'Catàleg complet de Netflix en HD amb anuncis puntuals (4-5 min/hora).',
+            details: '2 pantalles simultànies. La millor opció si el pressupost és el criteri.'
+          },
+          {
+            name: 'Amazon Prime Video', price: 4.99, priceLabel: '4,99€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Inclou Prime Video + enviaments Amazon gratuïts + Prime Music.',
+            details: 'Pla anual: 49,90€/any = 4,16€/mes efectiu.'
+          },
+          {
+            name: 'HBO Max (Bàsic)', price: 5.99, priceLabel: '5,99€/mes',
+            badge: 'Recomanat',
+            description: 'Tot el catàleg HBO, Warner, DC i Max Originals. Qualitat HD.',
+            details: 'El millor per a sèries de qualitat i cinema d\'autor.'
+          },
+          {
+            name: 'Disney+', price: 5.99, priceLabel: '5,99€/mes',
+            badge: 'Econòmic',
+            description: 'Marvel, Star Wars, Pixar, Disney i National Geographic.',
+            details: 'Pla Estàndard HD compartible amb membres de la llar.'
+          },
+          {
+            name: 'Filmin', price: 8.99, priceLabel: '8,99€/mes',
+            badge: 'Especial',
+            description: 'Cinema independent, europeu i de festival. Única plataforma amb molt contingut en català.',
+            details: 'Catàleg molt curiós per a amants del cinema de qualitat.'
+          },
         ],
         tip: 'Netflix anuncis + HBO Bàsic = 10,98€/mes i tens pràcticament tot. Molts comparteixen comptes amb amics o família.'
       },
@@ -1010,22 +1204,30 @@
       'streaming-musica': {
         label: 'streaming de música',
         options: [
-          { name:'Spotify (Estudiant)', price:5.99, priceLabel:'5,99€/mes',
-            badge:'Millor preu',
-            description:'Pla estudiant: 50% de descompte. Inclou Spotify Premium complet sense anuncis.',
-            details:'Cal verificar el centre d\'estudis. Vàlid per a universitaris.' },
-          { name:'YouTube Music Premium', price:10.99, priceLabel:'10,99€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Inclou YouTube Premium (sense anuncis a YouTube) + tota la música.',
-            details:'Pla familiar disponible fins 6 persones per 17,99€/mes.' },
-          { name:'Spotify Individual', price:11.99, priceLabel:'11,99€/mes',
-            badge:'Més popular',
-            description:'El referent mundial. 100M de cançons, podcasts, audiollibres.',
-            details:'Descàrrega offline. Disponible a tots els dispositius.' },
-          { name:'Apple Music', price:10.99, priceLabel:'10,99€/mes',
-            badge:'Recomanat (Apple)',
-            description:'Ideal si tens iPhone o Mac. Qualitat Lossless inclosa.',
-            details:'Pla estudiant a 5,99€/mes. Integració perfecta amb l\'ecosistema Apple.' },
+          {
+            name: 'Spotify (Estudiant)', price: 5.99, priceLabel: '5,99€/mes',
+            badge: 'Millor preu',
+            description: 'Pla estudiant: 50% de descompte. Inclou Spotify Premium complet sense anuncis.',
+            details: 'Cal verificar el centre d\'estudis. Vàlid per a universitaris.'
+          },
+          {
+            name: 'YouTube Music Premium', price: 10.99, priceLabel: '10,99€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Inclou YouTube Premium (sense anuncis a YouTube) + tota la música.',
+            details: 'Pla familiar disponible fins 6 persones per 17,99€/mes.'
+          },
+          {
+            name: 'Spotify Individual', price: 11.99, priceLabel: '11,99€/mes',
+            badge: 'Més popular',
+            description: 'El referent mundial. 100M de cançons, podcasts, audiollibres.',
+            details: 'Descàrrega offline. Disponible a tots els dispositius.'
+          },
+          {
+            name: 'Apple Music', price: 10.99, priceLabel: '10,99€/mes',
+            badge: 'Recomanat (Apple)',
+            description: 'Ideal si tens iPhone o Mac. Qualitat Lossless inclosa.',
+            details: 'Pla estudiant a 5,99€/mes. Integració perfecta amb l\'ecosistema Apple.'
+          },
         ],
         tip: 'Si ets estudiant, Spotify Estudiant a 5,99€ és imbatible. Si no, el pla familiar compartit entre 6 surt a ~3€/persona.'
       },
@@ -1033,22 +1235,30 @@
       transport: {
         label: 'transport públic a Barcelona',
         options: [
-          { name:'Bicing (subscripció anual)', price:13.67, priceLabel:'13,67€/mes',
-            badge:'Millor preu',
-            description:'164€/any = bicicleta pública il·limitada. Viatges de fins a 30 min sense cost.',
-            details:'500+ estacions. Inclou bici elèctrica (+10 min gratis extra).' },
-          { name:'T-Jove (menors de 30)', price:20.00, priceLabel:'20€/mes',
-            badge:'Millor qualitat-preu',
-            description:'70 viatges mensuals multi-operador: metro, bus, FGC, Rodalies. Subvencionada.',
-            details:'Cal tenir menys de 30 anys. Es renova automàticament cada mes.' },
-          { name:'T-Usual (1 zona)', price:20.00, priceLabel:'~20€/mes',
-            badge:'Recomanat',
-            description:'Viatges il·limitats a la zona 1 (tota Barcelona ciutat): metro, bus, FGC, Rodalies.',
-            details:'La millor opció si fas més de 40 viatges al mes.' },
-          { name:'T-Usual (2 zones)', price:38.30, priceLabel:'38,30€/mes',
-            badge:'Àrea metropolitana',
-            description:'Per a qui viu fora de Barcelona: Badalona, Hospitalet, Sant Cugat, etc.',
-            details:'Inclou tots els operadors de transport de l\'àrea metropolitana.' },
+          {
+            name: 'Bicing (subscripció anual)', price: 13.67, priceLabel: '13,67€/mes',
+            badge: 'Millor preu',
+            description: '164€/any = bicicleta pública il·limitada. Viatges de fins a 30 min sense cost.',
+            details: '500+ estacions. Inclou bici elèctrica (+10 min gratis extra).'
+          },
+          {
+            name: 'T-Jove (menors de 30)', price: 20.00, priceLabel: '20€/mes',
+            badge: 'Millor qualitat-preu',
+            description: '70 viatges mensuals multi-operador: metro, bus, FGC, Rodalies. Subvencionada.',
+            details: 'Cal tenir menys de 30 anys. Es renova automàticament cada mes.'
+          },
+          {
+            name: 'T-Usual (1 zona)', price: 20.00, priceLabel: '~20€/mes',
+            badge: 'Recomanat',
+            description: 'Viatges il·limitats a la zona 1 (tota Barcelona ciutat): metro, bus, FGC, Rodalies.',
+            details: 'La millor opció si fas més de 40 viatges al mes.'
+          },
+          {
+            name: 'T-Usual (2 zones)', price: 38.30, priceLabel: '38,30€/mes',
+            badge: 'Àrea metropolitana',
+            description: 'Per a qui viu fora de Barcelona: Badalona, Hospitalet, Sant Cugat, etc.',
+            details: 'Inclou tots els operadors de transport de l\'àrea metropolitana.'
+          },
         ],
         tip: 'Si tens menys de 30 anys, la T-Jove és la millor opció. Si hi ha dies que vas en bici, combina Bicing + T-Casual puntual.'
       },
@@ -1056,22 +1266,30 @@
       bici: {
         label: 'bicicleta a Barcelona',
         options: [
-          { name:'Bicing (anual)', price:13.67, priceLabel:'13,67€/mes (164€/any)',
-            badge:'Millor preu',
-            description:'Sistema de bici pública de l\'Ajuntament. Il·limitada en viatges curts de 30 min.',
-            details:'500+ estacions per tota la ciutat. App per trobar bicis i estacions lliures.' },
-          { name:'Donkey Republic (mensual)', price:29.00, priceLabel:'29€/mes',
-            badge:'Flexible',
-            description:'Bici privada de lloguer mensual. Sense estació fixa, es deixa on vulguis.',
-            details:'App molt senzilla. Ideal si el Bicing no cobreix bé el teu barri.' },
-          { name:'Compra bici de segona mà', price:80, priceLabel:'~80€ (preu únic)',
-            badge:'Inversió única',
-            description:'Wallapop i Milanuncios tenen moltes bicis de qualitat per 60-120€.',
-            details:'Amortitzada en 2-3 mesos vs Bicing. Recorda comprar un bon cadenat (~20€).' },
-          { name:'Bici elèctrica de lloguer', price:45.00, priceLabel:'~45€/mes',
-            badge:'Econòmic elèctric',
-            description:'Diverses empreses ofereixen subscripcions mensuals de bici elèctrica a BCN.',
-            details:'Grize, eCooltra Scooter i altres. Consulta disponibilitat per barri.' },
+          {
+            name: 'Bicing (anual)', price: 13.67, priceLabel: '13,67€/mes (164€/any)',
+            badge: 'Millor preu',
+            description: 'Sistema de bici pública de l\'Ajuntament. Il·limitada en viatges curts de 30 min.',
+            details: '500+ estacions per tota la ciutat. App per trobar bicis i estacions lliures.'
+          },
+          {
+            name: 'Donkey Republic (mensual)', price: 29.00, priceLabel: '29€/mes',
+            badge: 'Flexible',
+            description: 'Bici privada de lloguer mensual. Sense estació fixa, es deixa on vulguis.',
+            details: 'App molt senzilla. Ideal si el Bicing no cobreix bé el teu barri.'
+          },
+          {
+            name: 'Compra bici de segona mà', price: 80, priceLabel: '~80€ (preu únic)',
+            badge: 'Inversió única',
+            description: 'Wallapop i Milanuncios tenen moltes bicis de qualitat per 60-120€.',
+            details: 'Amortitzada en 2-3 mesos vs Bicing. Recorda comprar un bon cadenat (~20€).'
+          },
+          {
+            name: 'Bici elèctrica de lloguer', price: 45.00, priceLabel: '~45€/mes',
+            badge: 'Econòmic elèctric',
+            description: 'Diverses empreses ofereixen subscripcions mensuals de bici elèctrica a BCN.',
+            details: 'Grize, eCooltra Scooter i altres. Consulta disponibilitat per barri.'
+          },
         ],
         tip: 'El Bicing és ideal per a trajectes dins Barcelona. Per anar a Gràcia, Sants o Poblenou és perfecte i molt barat.'
       },
@@ -1079,18 +1297,24 @@
       patinets: {
         label: 'patinets i mobilitat urbana',
         options: [
-          { name:'Voi (bons de minuts)', price:15.00, priceLabel:'~15€/mes',
-            badge:'Millor preu',
-            description:'Patinet elèctric compartit. Pack mensual de 60 min per 14,99€.',
-            details:'Cobertura a tot Barcelona. App senzilla i molt extesa.' },
-          { name:'Lime (subscripció)', price:19.99, priceLabel:'19,99€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Subscripció Lime Prime: descompte del 10% en tots els trajectes + 3 viatges gratis/mes.',
-            details:'Cobertura àmplia. Compatible amb l\'app de Google Maps.' },
-          { name:'Bolt Scooter', price:12.00, priceLabel:'~12€/mes ús ocasional',
-            badge:'Econòmic',
-            description:'Preus per minut dels més baixos. Sense subscripció mensual obligatòria.',
-            details:'Especialment econòmic per a trajectes curts i puntuals.' },
+          {
+            name: 'Voi (bons de minuts)', price: 15.00, priceLabel: '~15€/mes',
+            badge: 'Millor preu',
+            description: 'Patinet elèctric compartit. Pack mensual de 60 min per 14,99€.',
+            details: 'Cobertura a tot Barcelona. App senzilla i molt extesa.'
+          },
+          {
+            name: 'Lime (subscripció)', price: 19.99, priceLabel: '19,99€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Subscripció Lime Prime: descompte del 10% en tots els trajectes + 3 viatges gratis/mes.',
+            details: 'Cobertura àmplia. Compatible amb l\'app de Google Maps.'
+          },
+          {
+            name: 'Bolt Scooter', price: 12.00, priceLabel: '~12€/mes ús ocasional',
+            badge: 'Econòmic',
+            description: 'Preus per minut dels més baixos. Sense subscripció mensual obligatòria.',
+            details: 'Especialment econòmic per a trajectes curts i puntuals.'
+          },
         ],
         tip: 'Si els fas servir molt, una bici pròpia o el Bicing sortirà molt més barat que el patinet de lloguer a llarg termini.'
       },
@@ -1098,26 +1322,36 @@
       mobil: {
         label: 'tarifes de mòbil',
         options: [
-          { name:'Digi Mòbil 25GB', price:5.00, priceLabel:'5€/mes',
-            badge:'Millor preu',
-            description:'25GB en 4G/5G, trucades il·limitades, sense permanència.',
-            details:'Xarxa Vodafone. Cobertura excel·lent a Barcelona i Catalunya.' },
-          { name:'Amena 30GB', price:7.95, priceLabel:'7,95€/mes',
-            badge:'Econòmic',
-            description:'30GB en 4G, trucades il·limitades. Operadora virtual d\'Orange.',
-            details:'Portabilitat molt senzilla. Sense matrícula ni costos d\'alta.' },
-          { name:'Simyo (personalitzable)', price:8.00, priceLabel:'des de 8€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Tries exactament els GB i minuts que vols. Pagues el just.',
-            details:'Xarxa Orange. Canvies de pla cada mes sense cap penalització.' },
-          { name:'Yoigo 50GB', price:12.99, priceLabel:'12,99€/mes',
-            badge:'Recomanat',
-            description:'50GB en 5G, trucades il·limitades, roaming UE inclòs.',
-            details:'Ideal si viatges per Europa sovint o necessites molta dada.' },
-          { name:'Movistar 20GB (Fusió)', price:19.99, priceLabel:'19,99€/mes',
-            badge:'Premium',
-            description:'Millor cobertura i servei tècnic. Inclou servei 24h.',
-            details:'Recomanat si el mòbil és clau per feina o necessites la millor cobertura possible.' },
+          {
+            name: 'Digi Mòbil 25GB', price: 5.00, priceLabel: '5€/mes',
+            badge: 'Millor preu',
+            description: '25GB en 4G/5G, trucades il·limitades, sense permanència.',
+            details: 'Xarxa Vodafone. Cobertura excel·lent a Barcelona i Catalunya.'
+          },
+          {
+            name: 'Amena 30GB', price: 7.95, priceLabel: '7,95€/mes',
+            badge: 'Econòmic',
+            description: '30GB en 4G, trucades il·limitades. Operadora virtual d\'Orange.',
+            details: 'Portabilitat molt senzilla. Sense matrícula ni costos d\'alta.'
+          },
+          {
+            name: 'Simyo (personalitzable)', price: 8.00, priceLabel: 'des de 8€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Tries exactament els GB i minuts que vols. Pagues el just.',
+            details: 'Xarxa Orange. Canvies de pla cada mes sense cap penalització.'
+          },
+          {
+            name: 'Yoigo 50GB', price: 12.99, priceLabel: '12,99€/mes',
+            badge: 'Recomanat',
+            description: '50GB en 5G, trucades il·limitades, roaming UE inclòs.',
+            details: 'Ideal si viatges per Europa sovint o necessites molta dada.'
+          },
+          {
+            name: 'Movistar 20GB (Fusió)', price: 19.99, priceLabel: '19,99€/mes',
+            badge: 'Premium',
+            description: 'Millor cobertura i servei tècnic. Inclou servei 24h.',
+            details: 'Recomanat si el mòbil és clau per feina o necessites la millor cobertura possible.'
+          },
         ],
         tip: 'Amb Digi a 5€/mes tens tot el que necessita la majoria. Porta el número actual i activa\'t en menys de 2 dies.'
       },
@@ -1125,22 +1359,30 @@
       internet: {
         label: 'fibra i internet a casa',
         options: [
-          { name:'Digi Fibra 1Gb', price:20.00, priceLabel:'20€/mes',
-            badge:'Millor preu',
-            description:'Fibra simètrica 1Gb. Sense permanència, sense cost d\'instal·lació.',
-            details:'Disponible a la majoria de barris de Barcelona. Creixent ràpidament.' },
-          { name:'Amena Fibra 600Mb', price:24.95, priceLabel:'24,95€/mes',
-            badge:'Econòmic',
-            description:'600Mb simètrics. Inclou router Wi-Fi 6. Xarxa Orange.',
-            details:'Molt bona estabilitat i suport tècnic 24h.' },
-          { name:'Jazztel Fibra 1Gb', price:27.95, priceLabel:'27,95€/mes',
-            badge:'Millor qualitat-preu',
-            description:'1Gb + telèfon fix inclòs. Sense permanència. Promoció habitual 3 mesos gratis.',
-            details:'Recomanat si voleu incloure un número de telèfon fix a casa.' },
-          { name:'Orange Fibra 1Gb', price:32.95, priceLabel:'32,95€/mes',
-            badge:'Recomanat',
-            description:'Gran xarxa pròpia, molt bona cobertura i servei tècnic a domicili.',
-            details:'Ideal per a llars amb molts dispositius connectats simultàniament.' },
+          {
+            name: 'Digi Fibra 1Gb', price: 20.00, priceLabel: '20€/mes',
+            badge: 'Millor preu',
+            description: 'Fibra simètrica 1Gb. Sense permanència, sense cost d\'instal·lació.',
+            details: 'Disponible a la majoria de barris de Barcelona. Creixent ràpidament.'
+          },
+          {
+            name: 'Amena Fibra 600Mb', price: 24.95, priceLabel: '24,95€/mes',
+            badge: 'Econòmic',
+            description: '600Mb simètrics. Inclou router Wi-Fi 6. Xarxa Orange.',
+            details: 'Molt bona estabilitat i suport tècnic 24h.'
+          },
+          {
+            name: 'Jazztel Fibra 1Gb', price: 27.95, priceLabel: '27,95€/mes',
+            badge: 'Millor qualitat-preu',
+            description: '1Gb + telèfon fix inclòs. Sense permanència. Promoció habitual 3 mesos gratis.',
+            details: 'Recomanat si voleu incloure un número de telèfon fix a casa.'
+          },
+          {
+            name: 'Orange Fibra 1Gb', price: 32.95, priceLabel: '32,95€/mes',
+            badge: 'Recomanat',
+            description: 'Gran xarxa pròpia, molt bona cobertura i servei tècnic a domicili.',
+            details: 'Ideal per a llars amb molts dispositius connectats simultàniament.'
+          },
         ],
         tip: 'Digi Fibra és la més barata de llarg. Si combines Digi fibra + Digi mòbil pots estalviar fins a 5€/mes addicionals.'
       },
@@ -1148,22 +1390,30 @@
       lloguer: {
         label: 'lloguer d\'habitació a Barcelona',
         options: [
-          { name:'Habitació pis compartit (perifèria)', price:450, priceLabel:'~450€/mes',
-            badge:'Millor preu',
-            description:'Habitació en pis compartit a barris com Nou Barris, Sant Andreu, Horta.',
-            details:'Idealista i Fotocasa. Inclou normalment llum i aigua. Sense mobles extres.' },
-          { name:'Habitació pis compartit (Eixample/Gràcia)', price:600, priceLabel:'~600€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Habitació en zones cèntriques i ben comunicades amb transport públic.',
-            details:'Busca a Badi, SpotAHome o Roomies per trobar opcions verificades.' },
-          { name:'Residència universitària', price:700, priceLabel:'~700€/mes',
-            badge:'Recomanat estudiants',
-            description:'Residències com Resa, Nexo o Resa Pedralbes. Tot inclòs: llum, wifi, neteja zones comunes.',
-            details:'Cal reservar amb molt d\'antelació. Paga la pena per comoditat i seguretat.' },
-          { name:'Estudi / apartament propi', price:1000, priceLabel:'~1.000€/mes',
-            badge:'Independència total',
-            description:'Estudi de 25-35m² al centre de Barcelona. Preu mínim del mercat actual.',
-            details:'Molt complicat trobar per sota de 900€ a Barcelona ciutat. Considera àrea metropolitana.' },
+          {
+            name: 'Habitació pis compartit (perifèria)', price: 450, priceLabel: '~450€/mes',
+            badge: 'Millor preu',
+            description: 'Habitació en pis compartit a barris com Nou Barris, Sant Andreu, Horta.',
+            details: 'Idealista i Fotocasa. Inclou normalment llum i aigua. Sense mobles extres.'
+          },
+          {
+            name: 'Habitació pis compartit (Eixample/Gràcia)', price: 600, priceLabel: '~600€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Habitació en zones cèntriques i ben comunicades amb transport públic.',
+            details: 'Busca a Badi, SpotAHome o Roomies per trobar opcions verificades.'
+          },
+          {
+            name: 'Residència universitària', price: 700, priceLabel: '~700€/mes',
+            badge: 'Recomanat estudiants',
+            description: 'Residències com Resa, Nexo o Resa Pedralbes. Tot inclòs: llum, wifi, neteja zones comunes.',
+            details: 'Cal reservar amb molt d\'antelació. Paga la pena per comoditat i seguretat.'
+          },
+          {
+            name: 'Estudi / apartament propi', price: 1000, priceLabel: '~1.000€/mes',
+            badge: 'Independència total',
+            description: 'Estudi de 25-35m² al centre de Barcelona. Preu mínim del mercat actual.',
+            details: 'Molt complicat trobar per sota de 900€ a Barcelona ciutat. Considera àrea metropolitana.'
+          },
         ],
         tip: 'Barris amb millor preu/connexió: Nou Barris, Sant Andreu, Horta-Guinardó. Tots amb metro i bus directe al centre.'
       },
@@ -1171,22 +1421,30 @@
       coworking: {
         label: 'espais de coworking',
         options: [
-          { name:'Biblioteca pública BCN', price:0, priceLabel:'0€/mes (gratuït)',
-            badge:'Millor preu',
-            description:'Les biblioteques municipals de Barcelona ofereixen llocs de treball amb WiFi gratuït.',
-            details:'Biblioteques com La Sagrera, Vapor Vell, Jaume Fuster. Horari de 9h a 21h.' },
-          { name:'WeWork Hot Desk', price:250, priceLabel:'~250€/mes',
-            badge:'Econòmic coworking',
-            description:'Accés flexible a qualsevol centre WeWork de Barcelona. Includes café i sales reunions.',
-            details:'Centres a Passeig de Gràcia, 22@, Diagonal.' },
-          { name:'Cowork BCN (22@ District)', price:180, priceLabel:'~180€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Espais independents al districte tecnològic 22@. Ambient startup.',
-            details:'Molts coworkings locals al 22@ per sota de 200€/mes. Busca a Coworker.com.' },
-          { name:'Cafès amb wifi (informal)', price:30, priceLabel:'~30€/mes',
-            badge:'Alternatiu',
-            description:'Molts cafès de Barcelona permeten treballar si consumes. ~3-5€/sessió.',
-            details:'Federal Café, Nomad, Right Side Coffee. Recomanat per sessions de 2-3h.' },
+          {
+            name: 'Biblioteca pública BCN', price: 0, priceLabel: '0€/mes (gratuït)',
+            badge: 'Millor preu',
+            description: 'Les biblioteques municipals de Barcelona ofereixen llocs de treball amb WiFi gratuït.',
+            details: 'Biblioteques com La Sagrera, Vapor Vell, Jaume Fuster. Horari de 9h a 21h.'
+          },
+          {
+            name: 'WeWork Hot Desk', price: 250, priceLabel: '~250€/mes',
+            badge: 'Econòmic coworking',
+            description: 'Accés flexible a qualsevol centre WeWork de Barcelona. Includes café i sales reunions.',
+            details: 'Centres a Passeig de Gràcia, 22@, Diagonal.'
+          },
+          {
+            name: 'Cowork BCN (22@ District)', price: 180, priceLabel: '~180€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Espais independents al districte tecnològic 22@. Ambient startup.',
+            details: 'Molts coworkings locals al 22@ per sota de 200€/mes. Busca a Coworker.com.'
+          },
+          {
+            name: 'Cafès amb wifi (informal)', price: 30, priceLabel: '~30€/mes',
+            badge: 'Alternatiu',
+            description: 'Molts cafès de Barcelona permeten treballar si consumes. ~3-5€/sessió.',
+            details: 'Federal Café, Nomad, Right Side Coffee. Recomanat per sessions de 2-3h.'
+          },
         ],
         tip: 'Per a estudiants i freelances, combina la biblioteca gratuïta per al treball intens + un cafè amb wifi per a reunions.'
       },
@@ -1194,22 +1452,30 @@
       supermercats: {
         label: 'supermercats i alimentació',
         options: [
-          { name:'Lidl', price:170, priceLabel:'~170€/mes (1 persona)',
-            badge:'Millor preu',
-            description:'El supermercat més barat de BCN per cistella bàsica. Excel·lent fruita i verdura.',
-            details:'Gairebé tots els barris de Barcelona. Ofertes setmanals molt competitives.' },
-          { name:'Aldi', price:180, priceLabel:'~180€/mes (1 persona)',
-            badge:'Econòmic',
-            description:'Preus equivalents a Lidl. Producte propi de bona qualitat.',
-            details:'Menys ubicacions que Lidl però preus molt similars.' },
-          { name:'Mercadona', price:210, priceLabel:'~210€/mes (1 persona)',
-            badge:'Millor qualitat-preu',
-            description:'El millor equilibri qualitat-preu. Marca Hacendado molt consistent.',
-            details:'App per compra online. Disponible a tota Barcelona.' },
-          { name:'Bonpreu / Esclat', price:240, priceLabel:'~240€/mes (1 persona)',
-            badge:'Producte local',
-            description:'Supermercat català amb bon producte fresc, local i km0.',
-            details:'Programa Plusfresc amb descomptes acumulatius.' },
+          {
+            name: 'Lidl', price: 170, priceLabel: '~170€/mes (1 persona)',
+            badge: 'Millor preu',
+            description: 'El supermercat més barat de BCN per cistella bàsica. Excel·lent fruita i verdura.',
+            details: 'Gairebé tots els barris de Barcelona. Ofertes setmanals molt competitives.'
+          },
+          {
+            name: 'Aldi', price: 180, priceLabel: '~180€/mes (1 persona)',
+            badge: 'Econòmic',
+            description: 'Preus equivalents a Lidl. Producte propi de bona qualitat.',
+            details: 'Menys ubicacions que Lidl però preus molt similars.'
+          },
+          {
+            name: 'Mercadona', price: 210, priceLabel: '~210€/mes (1 persona)',
+            badge: 'Millor qualitat-preu',
+            description: 'El millor equilibri qualitat-preu. Marca Hacendado molt consistent.',
+            details: 'App per compra online. Disponible a tota Barcelona.'
+          },
+          {
+            name: 'Bonpreu / Esclat', price: 240, priceLabel: '~240€/mes (1 persona)',
+            badge: 'Producte local',
+            description: 'Supermercat català amb bon producte fresc, local i km0.',
+            details: 'Programa Plusfresc amb descomptes acumulatius.'
+          },
         ],
         tip: 'Estratègia estalvi: Lidl per a fruita/verdura/bàsics i Mercadona per a marca pròpia. Estalvi estimat: 40-60€/mes.'
       },
@@ -1217,22 +1483,30 @@
       restaurants: {
         label: 'menjar fora a Barcelona',
         options: [
-          { name:'Mercat municipal (parades cuina)', price:6, priceLabel:'~6€/plat',
-            badge:'Millor preu',
-            description:'Parades de cuina als mercats: Santa Caterina, Abaceria, Vall d\'Hebron.',
-            details:'Plats del dia des de 5€. Qualitat excel·lent i producte molt fresc.' },
-          { name:'Menú del dia (bar de barri)', price:10.50, priceLabel:'~10,50€/dinar',
-            badge:'Clàssic Barcelona',
-            description:'Primer + segon + postre + beguda. La fórmula més econòmica per dinar.',
-            details:'Evita zones turístiques (Barceloneta, Gòtic, Ramblas). Al Poblenou o Sants és molt millor preu.' },
-          { name:'Menjar preparat (supermercat)', price:4.50, priceLabel:'~4,50€/àpat',
-            badge:'Econòmic',
-            description:'Mercadona, Lidl i Aldi tenen plats preparats de qualitat des de 3,50€.',
-            details:'Ideal per a sopars ràpids i econòmics a casa.' },
-          { name:'Cadenes de menjar ràpid (casual)', price:12, priceLabel:'~12€/persona',
-            badge:'Conegut',
-            description:'McDonald\'s, Burger King, Telepizza. Preus controlats i previsibles.',
-            details:'Tiquets restaurant (Pluxee/Sodexo) redueixen el cost efectiu fins un 50%.' },
+          {
+            name: 'Mercat municipal (parades cuina)', price: 6, priceLabel: '~6€/plat',
+            badge: 'Millor preu',
+            description: 'Parades de cuina als mercats: Santa Caterina, Abaceria, Vall d\'Hebron.',
+            details: 'Plats del dia des de 5€. Qualitat excel·lent i producte molt fresc.'
+          },
+          {
+            name: 'Menú del dia (bar de barri)', price: 10.50, priceLabel: '~10,50€/dinar',
+            badge: 'Clàssic Barcelona',
+            description: 'Primer + segon + postre + beguda. La fórmula més econòmica per dinar.',
+            details: 'Evita zones turístiques (Barceloneta, Gòtic, Ramblas). Al Poblenou o Sants és molt millor preu.'
+          },
+          {
+            name: 'Menjar preparat (supermercat)', price: 4.50, priceLabel: '~4,50€/àpat',
+            badge: 'Econòmic',
+            description: 'Mercadona, Lidl i Aldi tenen plats preparats de qualitat des de 3,50€.',
+            details: 'Ideal per a sopars ràpids i econòmics a casa.'
+          },
+          {
+            name: 'Cadenes de menjar ràpid (casual)', price: 12, priceLabel: '~12€/persona',
+            badge: 'Conegut',
+            description: 'McDonald\'s, Burger King, Telepizza. Preus controlats i previsibles.',
+            details: 'Tiquets restaurant (Pluxee/Sodexo) redueixen el cost efectiu fins un 50%.'
+          },
         ],
         tip: 'El menú del dia en un bar de barri és el millor valor de Barcelona. Demanat sempre el menú, mai la carta.'
       },
@@ -1240,22 +1514,30 @@
       cafes: {
         label: 'cafès i cafeteries',
         options: [
-          { name:'Bar de barri tradicional', price:1.20, priceLabel:'~1,20€/cafè',
-            badge:'Millor preu',
-            description:'Cafè tallat o sol en un bar tradicional de Barcelona. El preu més baix garantit.',
-            details:'Evita zones turístiques. A l\'Eixample i Gràcia trobaràs bones opcions.' },
-          { name:'Cafeteria de mercat', price:1.50, priceLabel:'~1,50€/cafè',
-            badge:'Econòmic',
-            description:'Les cafeteries dins dels mercats municipals solen tenir preus molt bons.',
-            details:'Bon ambient i qualitat de producte. Mercat de l\'Abaceria, Santa Caterina.' },
-          { name:'Cafè de especialitat (terç ona)', price:3.50, priceLabel:'~3,50€/cafè',
-            badge:'Qualitat premium',
-            description:'Cafès de tercera onada: Nomad, Right Side, Federal Café, Satan\'s Coffee.',
-            details:'Molt bon lloc per treballar amb portàtil. WiFi inclòs normalment.' },
-          { name:'Starbucks / The Lounge', price:5.50, priceLabel:'~5,50€/cafè',
-            badge:'Cadena coneguda',
-            description:'Cadenes internacionals. Preus alts però molt espai per asseure\'s i treballar.',
-            details:'Útil si necessites un lloc tranquil per reunions o estudiar durant hores.' },
+          {
+            name: 'Bar de barri tradicional', price: 1.20, priceLabel: '~1,20€/cafè',
+            badge: 'Millor preu',
+            description: 'Cafè tallat o sol en un bar tradicional de Barcelona. El preu més baix garantit.',
+            details: 'Evita zones turístiques. A l\'Eixample i Gràcia trobaràs bones opcions.'
+          },
+          {
+            name: 'Cafeteria de mercat', price: 1.50, priceLabel: '~1,50€/cafè',
+            badge: 'Econòmic',
+            description: 'Les cafeteries dins dels mercats municipals solen tenir preus molt bons.',
+            details: 'Bon ambient i qualitat de producte. Mercat de l\'Abaceria, Santa Caterina.'
+          },
+          {
+            name: 'Cafè de especialitat (terç ona)', price: 3.50, priceLabel: '~3,50€/cafè',
+            badge: 'Qualitat premium',
+            description: 'Cafès de tercera onada: Nomad, Right Side, Federal Café, Satan\'s Coffee.',
+            details: 'Molt bon lloc per treballar amb portàtil. WiFi inclòs normalment.'
+          },
+          {
+            name: 'Starbucks / The Lounge', price: 5.50, priceLabel: '~5,50€/cafè',
+            badge: 'Cadena coneguda',
+            description: 'Cadenes internacionals. Preus alts però molt espai per asseure\'s i treballar.',
+            details: 'Útil si necessites un lloc tranquil per reunions o estudiar durant hores.'
+          },
         ],
         tip: 'Un cafè de bar de barri a 1,20€ és idèntic en cafeïna al de Starbucks a 5€. Estalvi potencial: 100€+/mes si en prens 2 al dia.'
       },
@@ -1263,22 +1545,30 @@
       'asseguranca-salut': {
         label: 'assegurança de salut privada',
         options: [
-          { name:'Capio Assistència Bàsica', price:15.90, priceLabel:'15,90€/mes',
-            badge:'Millor preu',
-            description:'Cobertura bàsica: metge de capçalera, consultes especialistes i urgències.',
-            details:'Xarxa de clíniques Capio a Barcelona i àrea metropolitana.' },
-          { name:'Asisa Jove (fins 35 anys)', price:19.90, priceLabel:'19,90€/mes',
-            badge:'Econòmic',
-            description:'Pla específic per a joves. Inclou dental bàsic i sense copagament.',
-            details:'Sense permanència. Es pot cancel·lar en qualsevol moment.' },
-          { name:'Adeslas Bàsic', price:24.90, priceLabel:'24,90€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Cobertura completa: capçalera, especialistes, urgències 24h, proves diagnòstiques.',
-            details:'Àmplia xarxa de metges concertats. App per sol·licitar cites.' },
-          { name:'Sanitas Selección', price:29.90, priceLabel:'29,90€/mes',
-            badge:'Recomanat',
-            description:'Cobertura ampliada amb hospitalització i cirurgia incloses.',
-            details:'Hospitals propis a Barcelona. Molt recomanat per a llarga estada a la ciutat.' },
+          {
+            name: 'Capio Assistència Bàsica', price: 15.90, priceLabel: '15,90€/mes',
+            badge: 'Millor preu',
+            description: 'Cobertura bàsica: metge de capçalera, consultes especialistes i urgències.',
+            details: 'Xarxa de clíniques Capio a Barcelona i àrea metropolitana.'
+          },
+          {
+            name: 'Asisa Jove (fins 35 anys)', price: 19.90, priceLabel: '19,90€/mes',
+            badge: 'Econòmic',
+            description: 'Pla específic per a joves. Inclou dental bàsic i sense copagament.',
+            details: 'Sense permanència. Es pot cancel·lar en qualsevol moment.'
+          },
+          {
+            name: 'Adeslas Bàsic', price: 24.90, priceLabel: '24,90€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Cobertura completa: capçalera, especialistes, urgències 24h, proves diagnòstiques.',
+            details: 'Àmplia xarxa de metges concertats. App per sol·licitar cites.'
+          },
+          {
+            name: 'Sanitas Selección', price: 29.90, priceLabel: '29,90€/mes',
+            badge: 'Recomanat',
+            description: 'Cobertura ampliada amb hospitalització i cirurgia incloses.',
+            details: 'Hospitals propis a Barcelona. Molt recomanat per a llarga estada a la ciutat.'
+          },
         ],
         tip: 'Recorda que a Catalunya tens dret a la sanitat pública gratuïta (CAP). La privada és un complement, no una substitució.'
       },
@@ -1286,22 +1576,30 @@
       dental: {
         label: 'serveis dentals i clíniques',
         options: [
-          { name:'Clínica Dental Pública (CatSalut)', price:0, priceLabel:'Gratuït (bàsic)',
-            badge:'Millor preu',
-            description:'Revisions i extraccions cobertes pel CatSalut. Demana cita al teu CAP.',
-            details:'Cobertura limitada: revisió, neteja bàsica i urgències. No inclou ortodòncia ni implants.' },
-          { name:'Òdex Dental / Vitaldent', price:25, priceLabel:'~25€/neteja',
-            badge:'Econòmic',
-            description:'Cadenes dentals amb preus estandarditzats i transparent. Sense sorpreses.',
-            details:'Neteja + revisió anual per ~50-60€. Plans de finançament disponibles.' },
-          { name:'Clínica Dental de preu mitjà', price:60, priceLabel:'~60€/consulta',
-            badge:'Qualitat-preu',
-            description:'Clíniques independents de barri. Millor relació personal-pacient.',
-            details:'Busca a Google Maps clíniques amb 4+ estrelles al teu barri.' },
-          { name:'Assegurança dental (Adeslas)', price:8, priceLabel:'~8€/mes (+salut)',
-            badge:'Recomanat',
-            description:'Add-on dental a l\'assegurança de salut. Cobreix netezes, empastats i revisió anual.',
-            details:'Val la pena si vas al dentista almenys 1 cop a l\'any.' },
+          {
+            name: 'Clínica Dental Pública (CatSalut)', price: 0, priceLabel: 'Gratuït (bàsic)',
+            badge: 'Millor preu',
+            description: 'Revisions i extraccions cobertes pel CatSalut. Demana cita al teu CAP.',
+            details: 'Cobertura limitada: revisió, neteja bàsica i urgències. No inclou ortodòncia ni implants.'
+          },
+          {
+            name: 'Òdex Dental / Vitaldent', price: 25, priceLabel: '~25€/neteja',
+            badge: 'Econòmic',
+            description: 'Cadenes dentals amb preus estandarditzats i transparent. Sense sorpreses.',
+            details: 'Neteja + revisió anual per ~50-60€. Plans de finançament disponibles.'
+          },
+          {
+            name: 'Clínica Dental de preu mitjà', price: 60, priceLabel: '~60€/consulta',
+            badge: 'Qualitat-preu',
+            description: 'Clíniques independents de barri. Millor relació personal-pacient.',
+            details: 'Busca a Google Maps clíniques amb 4+ estrelles al teu barri.'
+          },
+          {
+            name: 'Assegurança dental (Adeslas)', price: 8, priceLabel: '~8€/mes (+salut)',
+            badge: 'Recomanat',
+            description: 'Add-on dental a l\'assegurança de salut. Cobreix netezes, empastats i revisió anual.',
+            details: 'Val la pena si vas al dentista almenys 1 cop a l\'any.'
+          },
         ],
         tip: 'Una neteja anual al dentista privat (50-60€) és molt més barat que tractar problemes descuidats. No l\'ajornis.'
       },
@@ -1309,22 +1607,30 @@
       perruqueria: {
         label: 'perruqueria i barberia',
         options: [
-          { name:'Escola de Perruqueria', price:8, priceLabel:'~8€/tall',
-            badge:'Millor preu',
-            description:'Les escoles de perruqueria de Barcelona fan talls a preus molt baixos, supervisats per professors.',
-            details:'Escola Llotja, ITES i altres centres de formació. Cal reservar amb antelació.' },
-          { name:'Barberia de barri (homes)', price:12, priceLabel:'~12€/tall',
-            badge:'Econòmic',
-            description:'Barberies tradicionals fora de les zones turístiques. Tall + afaitat des de 10€.',
-            details:'Al Raval, Gracia, Sants i Nou Barris trobaràs opcions molt econòmiques.' },
-          { name:'Perruqueria unisex estàndard', price:20, priceLabel:'~20€/tall (dones)',
-            badge:'Millor qualitat-preu',
-            description:'Tall + assecat per a cabells llargs. Preu mig a Barcelona fora del centre.',
-            details:'Busca a Fresha o Treatwell per comparar preus al teu barri.' },
-          { name:'Perruqueria premium / saló', price:45, priceLabel:'~45€/servei',
-            badge:'Premium',
-            description:'Salons especialitzats per a tints, tractaments i estilisme avançat.',
-            details:'Sants, Gràcia i Eixample concentren molts salons de qualitat amb bon preu relatiu.' },
+          {
+            name: 'Escola de Perruqueria', price: 8, priceLabel: '~8€/tall',
+            badge: 'Millor preu',
+            description: 'Les escoles de perruqueria de Barcelona fan talls a preus molt baixos, supervisats per professors.',
+            details: 'Escola Llotja, ITES i altres centres de formació. Cal reservar amb antelació.'
+          },
+          {
+            name: 'Barberia de barri (homes)', price: 12, priceLabel: '~12€/tall',
+            badge: 'Econòmic',
+            description: 'Barberies tradicionals fora de les zones turístiques. Tall + afaitat des de 10€.',
+            details: 'Al Raval, Gracia, Sants i Nou Barris trobaràs opcions molt econòmiques.'
+          },
+          {
+            name: 'Perruqueria unisex estàndard', price: 20, priceLabel: '~20€/tall (dones)',
+            badge: 'Millor qualitat-preu',
+            description: 'Tall + assecat per a cabells llargs. Preu mig a Barcelona fora del centre.',
+            details: 'Busca a Fresha o Treatwell per comparar preus al teu barri.'
+          },
+          {
+            name: 'Perruqueria premium / saló', price: 45, priceLabel: '~45€/servei',
+            badge: 'Premium',
+            description: 'Salons especialitzats per a tints, tractaments i estilisme avançat.',
+            details: 'Sants, Gràcia i Eixample concentren molts salons de qualitat amb bon preu relatiu.'
+          },
         ],
         tip: 'Les escoles de perruqueria són la joia oculta de l\'estalvi a Barcelona. Qualitat supervisada a preus imbatibles.'
       },
@@ -1332,18 +1638,24 @@
       farmacia: {
         label: 'farmàcia i medicaments',
         options: [
-          { name:'Medicaments genèrics (receta)', price:2.50, priceLabel:'~2,50€/medicament',
-            badge:'Millor preu',
-            description:'Medicaments genèrics amb recepta del CatSalut. Preu regulat per l\'Estat.',
-            details:'Demana sempre el genèric equivalent al teu metge. Idèntica eficàcia, molt menys preu.' },
-          { name:'Farmàcies de descompte', price:0, priceLabel:'Preu variable',
-            badge:'Econòmic',
-            description:'FarmaDirecte, PromoFarma i similars online. Descomptes de fins al 40% vs farmàcia física.',
-            details:'Ideal per a productes OTC: vitamines, antiàcids, cremes solars, etc.' },
-          { name:'Marca blanca (paracetamol, ibuprofè)', price:1.20, priceLabel:'~1,20€/caixa',
-            badge:'Millor qualitat-preu',
-            description:'Paracetamol genèric i ibuprofè genèric. Idèntics a Gelocatil i Nurofen però molt més barats.',
-            details:'Disponibles a totes les farmàcies. Demana pel principi actiu, no la marca.' },
+          {
+            name: 'Medicaments genèrics (receta)', price: 2.50, priceLabel: '~2,50€/medicament',
+            badge: 'Millor preu',
+            description: 'Medicaments genèrics amb recepta del CatSalut. Preu regulat per l\'Estat.',
+            details: 'Demana sempre el genèric equivalent al teu metge. Idèntica eficàcia, molt menys preu.'
+          },
+          {
+            name: 'Farmàcies de descompte', price: 0, priceLabel: 'Preu variable',
+            badge: 'Econòmic',
+            description: 'FarmaDirecte, PromoFarma i similars online. Descomptes de fins al 40% vs farmàcia física.',
+            details: 'Ideal per a productes OTC: vitamines, antiàcids, cremes solars, etc.'
+          },
+          {
+            name: 'Marca blanca (paracetamol, ibuprofè)', price: 1.20, priceLabel: '~1,20€/caixa',
+            badge: 'Millor qualitat-preu',
+            description: 'Paracetamol genèric i ibuprofè genèric. Idèntics a Gelocatil i Nurofen però molt més barats.',
+            details: 'Disponibles a totes les farmàcies. Demana pel principi actiu, no la marca.'
+          },
         ],
         tip: 'A Espanya, els medicaments sense recepta es poden comprar a farmàcies o online. Compara sempre el preu del genèric.'
       },
@@ -1351,26 +1663,36 @@
       idiomes: {
         label: 'classes d\'idiomes a Barcelona',
         options: [
-          { name:'Duolingo / Apps gratuïtes', price:0, priceLabel:'Gratuït',
-            badge:'Millor preu',
-            description:'Duolingo, Babbel (versió free), Anki. Suficient per a nivells inicials i manteniment.',
-            details:'Ideal per a 15-20 min/dia de pràctica consistent. No substitueix les classes.' },
-          { name:'Conversation Exchange (Tandem)', price:0, priceLabel:'Gratuït',
-            badge:'Gratuït i efectiu',
-            description:'Intercanvi d\'idiomes amb nadius. Tu ensenyes català/castellà, ells t\'ensenyen anglès/francès.',
-            details:'Apps: Tandem, HelloTalk. BCN té una comunitat d\'intercanvi molt activa.' },
-          { name:'Escola Oficial d\'Idiomes (EOI)', price:15, priceLabel:'~15€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Escola pública oficial. Preus molt subvencionats (~180€/any). Certificats oficials.',
-            details:'Cal fer proves de nivell. Alta demanda: apunta\'t a la llista d\'espera aviat.' },
-          { name:'Acadèmia privada (grup)', price:60, priceLabel:'~60€/mes',
-            badge:'Recomanat',
-            description:'Classes en grup de 6-10 persones. Progrés ràpid amb professor dedicat.',
-            details:'Wall Street English, International House, Englishtown i moltes acadèmies locals.' },
-          { name:'Classe particular (online)', price:35, priceLabel:'~35€/mes (1h/setmana)',
-            badge:'Flexible',
-            description:'Professor particular online. Molt personalitzat i flexible d\'horari.',
-            details:'Busca a Preply, iTalki o Tusclases. Professors des de 8€/hora.' },
+          {
+            name: 'Duolingo / Apps gratuïtes', price: 0, priceLabel: 'Gratuït',
+            badge: 'Millor preu',
+            description: 'Duolingo, Babbel (versió free), Anki. Suficient per a nivells inicials i manteniment.',
+            details: 'Ideal per a 15-20 min/dia de pràctica consistent. No substitueix les classes.'
+          },
+          {
+            name: 'Conversation Exchange (Tandem)', price: 0, priceLabel: 'Gratuït',
+            badge: 'Gratuït i efectiu',
+            description: 'Intercanvi d\'idiomes amb nadius. Tu ensenyes català/castellà, ells t\'ensenyen anglès/francès.',
+            details: 'Apps: Tandem, HelloTalk. BCN té una comunitat d\'intercanvi molt activa.'
+          },
+          {
+            name: 'Escola Oficial d\'Idiomes (EOI)', price: 15, priceLabel: '~15€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Escola pública oficial. Preus molt subvencionats (~180€/any). Certificats oficials.',
+            details: 'Cal fer proves de nivell. Alta demanda: apunta\'t a la llista d\'espera aviat.'
+          },
+          {
+            name: 'Acadèmia privada (grup)', price: 60, priceLabel: '~60€/mes',
+            badge: 'Recomanat',
+            description: 'Classes en grup de 6-10 persones. Progrés ràpid amb professor dedicat.',
+            details: 'Wall Street English, International House, Englishtown i moltes acadèmies locals.'
+          },
+          {
+            name: 'Classe particular (online)', price: 35, priceLabel: '~35€/mes (1h/setmana)',
+            badge: 'Flexible',
+            description: 'Professor particular online. Molt personalitzat i flexible d\'horari.',
+            details: 'Busca a Preply, iTalki o Tusclases. Professors des de 8€/hora.'
+          },
         ],
         tip: 'La combinació imbatible: EOI per a la base + Tandem per a pràctica oral. Tot per ~15€/mes.'
       },
@@ -1378,22 +1700,30 @@
       formacio: {
         label: 'formació i cursos online',
         options: [
-          { name:'YouTube / Recursos gratuïts', price:0, priceLabel:'Gratuït',
-            badge:'Millor preu',
-            description:'Per a molts temes tècnics (programació, disseny, màrqueting) YouTube és suficient.',
-            details:'Canals com Midudev, Fireship, Traversy Media, The Net Ninja.' },
-          { name:'Coursera (audit gratuït)', price:0, priceLabel:'Gratuït (sense certificat)',
-            badge:'Gratuït',
-            description:'La majoria de cursos de Coursera es poden auditar gratis sense certificat.',
-            details:'Universitats com Stanford, Google, IBM ofereixen contingut gratuïtament.' },
-          { name:'Udemy (en oferta)', price:13, priceLabel:'~13€/curs (en oferta)',
-            badge:'Millor qualitat-preu',
-            description:'Udemy fa ofertes constants fins a 90% de descompte. Mai paguis el preu complet.',
-            details:'Cursos vitalicis. Espera una oferta (cada 2-3 setmanes hi ha promocions).' },
-          { name:'LinkedIn Learning', price:29.99, priceLabel:'29,99€/mes',
-            badge:'Professional',
-            description:'Accés il·limitat a 20.000+ cursos. Certificats reconeguts per empreses.',
-            details:'El primer mes és gratuït. Molt útil per a transicions professionals.' },
+          {
+            name: 'YouTube / Recursos gratuïts', price: 0, priceLabel: 'Gratuït',
+            badge: 'Millor preu',
+            description: 'Per a molts temes tècnics (programació, disseny, màrqueting) YouTube és suficient.',
+            details: 'Canals com Midudev, Fireship, Traversy Media, The Net Ninja.'
+          },
+          {
+            name: 'Coursera (audit gratuït)', price: 0, priceLabel: 'Gratuït (sense certificat)',
+            badge: 'Gratuït',
+            description: 'La majoria de cursos de Coursera es poden auditar gratis sense certificat.',
+            details: 'Universitats com Stanford, Google, IBM ofereixen contingut gratuïtament.'
+          },
+          {
+            name: 'Udemy (en oferta)', price: 13, priceLabel: '~13€/curs (en oferta)',
+            badge: 'Millor qualitat-preu',
+            description: 'Udemy fa ofertes constants fins a 90% de descompte. Mai paguis el preu complet.',
+            details: 'Cursos vitalicis. Espera una oferta (cada 2-3 setmanes hi ha promocions).'
+          },
+          {
+            name: 'LinkedIn Learning', price: 29.99, priceLabel: '29,99€/mes',
+            badge: 'Professional',
+            description: 'Accés il·limitat a 20.000+ cursos. Certificats reconeguts per empreses.',
+            details: 'El primer mes és gratuït. Molt útil per a transicions professionals.'
+          },
         ],
         tip: 'Mai paguis el preu complet d\'Udemy. Afegeix els cursos a la llista de desitjos i espera l\'oferta de ~10-15€.'
       },
@@ -1401,22 +1731,30 @@
       gaming: {
         label: 'videojocs i subscripcions gaming',
         options: [
-          { name:'Xbox Game Pass Ultimate', price:14.99, priceLabel:'14,99€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Centenars de jocs inclosos per a PC i Xbox + EA Play + multijugador online.',
-            details:'Inclou tots els jocs de Microsoft el dia del llançament. El millor valor del mercat.' },
-          { name:'PlayStation Plus Essential', price:8.99, priceLabel:'8,99€/mes',
-            badge:'Econòmic (PS)',
-            description:'Multijugador online + 2-3 jocs gratis cada mes per a PS4/PS5.',
-            details:'Obligatori per a jugar online en PlayStation. Pla anual: ~60€ (5€/mes).' },
-          { name:'Steam (plataforma free)', price:0, priceLabel:'Gratuït (jocs apart)',
-            badge:'PC Gaming',
-            description:'La plataforma és gratuïta. Molts jocs gratuïts i rebaixes fins al 90%.',
-            details:'Sales de Steam (juny i desembre) amb grans descomptes. Requer PC o portàtil.' },
-          { name:'Nintendo Switch Online', price:3.99, priceLabel:'3,99€/mes',
-            badge:'Millor preu',
-            description:'Online + accés a catàleg de jocs NES, SNES, N64, Mega Drive.',
-            details:'El més barat del mercat si ja tens Nintendo Switch.' },
+          {
+            name: 'Xbox Game Pass Ultimate', price: 14.99, priceLabel: '14,99€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Centenars de jocs inclosos per a PC i Xbox + EA Play + multijugador online.',
+            details: 'Inclou tots els jocs de Microsoft el dia del llançament. El millor valor del mercat.'
+          },
+          {
+            name: 'PlayStation Plus Essential', price: 8.99, priceLabel: '8,99€/mes',
+            badge: 'Econòmic (PS)',
+            description: 'Multijugador online + 2-3 jocs gratis cada mes per a PS4/PS5.',
+            details: 'Obligatori per a jugar online en PlayStation. Pla anual: ~60€ (5€/mes).'
+          },
+          {
+            name: 'Steam (plataforma free)', price: 0, priceLabel: 'Gratuït (jocs apart)',
+            badge: 'PC Gaming',
+            description: 'La plataforma és gratuïta. Molts jocs gratuïts i rebaixes fins al 90%.',
+            details: 'Sales de Steam (juny i desembre) amb grans descomptes. Requer PC o portàtil.'
+          },
+          {
+            name: 'Nintendo Switch Online', price: 3.99, priceLabel: '3,99€/mes',
+            badge: 'Millor preu',
+            description: 'Online + accés a catàleg de jocs NES, SNES, N64, Mega Drive.',
+            details: 'El més barat del mercat si ja tens Nintendo Switch.'
+          },
         ],
         tip: 'El Game Pass de Microsoft és objectivament el millor valor en gaming ara mateix. Si tens PC, és una inversió clara.'
       },
@@ -1424,22 +1762,30 @@
       aparcament: {
         label: 'aparcament a Barcelona',
         options: [
-          { name:'Zona Verda (residents)', price:20, priceLabel:'~20€/mes',
-            badge:'Millor preu',
-            description:'Aparcament en superfície per a residents al districte. Molt econòmic.',
-            details:'Cal ser empadronat al barri. Sol·licita el distintiu de resident a l\'Ajuntament.' },
-          { name:'SABA / Bamsa (mensual)', price:90, priceLabel:'~90€/mes',
-            badge:'Econòmic interior',
-            description:'Abonament mensual en aparcaments públics gestionats per SABA o Bamsa.',
-            details:'Preus varien molt per zona. Aparcaments perifèrics (Zona Franca) molt més barats.' },
-          { name:'Garatge particular', price:70, priceLabel:'~70€/mes',
-            badge:'Millor qualitat-preu',
-            description:'Lloguer de plaça de garatge privat. Molts anuncis a Idealista i Wallapop.',
-            details:'Barris com Nou Barris, Sant Andreu o Horta. Pots negociar el preu.' },
-          { name:'Park & Ride (Rodalia)', price:5, priceLabel:'~5€/dia o abonament',
-            badge:'Alternatiu',
-            description:'Deixa el cotxe a un aparcament d\'intercanvi al cinturó i entra en tren.',
-            details:'Aparcaments a Cornellà, Mollet, Sant Cugat. Combina amb T-Usual.' },
+          {
+            name: 'Zona Verda (residents)', price: 20, priceLabel: '~20€/mes',
+            badge: 'Millor preu',
+            description: 'Aparcament en superfície per a residents al districte. Molt econòmic.',
+            details: 'Cal ser empadronat al barri. Sol·licita el distintiu de resident a l\'Ajuntament.'
+          },
+          {
+            name: 'SABA / Bamsa (mensual)', price: 90, priceLabel: '~90€/mes',
+            badge: 'Econòmic interior',
+            description: 'Abonament mensual en aparcaments públics gestionats per SABA o Bamsa.',
+            details: 'Preus varien molt per zona. Aparcaments perifèrics (Zona Franca) molt més barats.'
+          },
+          {
+            name: 'Garatge particular', price: 70, priceLabel: '~70€/mes',
+            badge: 'Millor qualitat-preu',
+            description: 'Lloguer de plaça de garatge privat. Molts anuncis a Idealista i Wallapop.',
+            details: 'Barris com Nou Barris, Sant Andreu o Horta. Pots negociar el preu.'
+          },
+          {
+            name: 'Park & Ride (Rodalia)', price: 5, priceLabel: '~5€/dia o abonament',
+            badge: 'Alternatiu',
+            description: 'Deixa el cotxe a un aparcament d\'intercanvi al cinturó i entra en tren.',
+            details: 'Aparcaments a Cornellà, Mollet, Sant Cugat. Combina amb T-Usual.'
+          },
         ],
         tip: 'A Barcelona tenir cotxe al centre surt molt car. Valora vendre\'l i combinar transport públic + Bicing + alquiler puntual.'
       },
@@ -1447,22 +1793,30 @@
       roba: {
         label: 'roba i moda econòmica',
         options: [
-          { name:'Vinted (segona mà)', price:0, priceLabel:'0€ (comissions venda)',
-            badge:'Millor preu',
-            description:'Plataforma de roba de segona mà. Peces de qualitat des d\'1-5€.',
-            details:'Ideal per a marques de qualitat a preus molt baixos. Tant compra com venda.' },
-          { name:'Shein', price:15, priceLabel:'~15€/peça mitja',
-            badge:'Econòmic (nou)',
-            description:'Roba nova a preus molt baixos. Gran varietat i noves col·leccions setmanals.',
-            details:'Considera l\'impacte mediambiental. Ideal per a peces bàsiques i temporals.' },
-          { name:'H&M / Primark', price:20, priceLabel:'~20€/peça',
-            badge:'Fast fashion estàndard',
-            description:'Roba nova de qualitat mitja a preus accessibles. Disponibles a BCN.',
-            details:'H&M té programa de reciclatge de roba. Primark a La Maquinista i Diagonal.' },
-          { name:'Zara (sales)', price:25, priceLabel:'~25€/peça en rebaixes',
-            badge:'Qualitat-preu',
-            description:'En temporada de rebaixes (gener i juliol) trobes bones peces a bon preu.',
-            details:'Les sales de Zara online comencen abans que a botiga física.' },
+          {
+            name: 'Vinted (segona mà)', price: 0, priceLabel: '0€ (comissions venda)',
+            badge: 'Millor preu',
+            description: 'Plataforma de roba de segona mà. Peces de qualitat des d\'1-5€.',
+            details: 'Ideal per a marques de qualitat a preus molt baixos. Tant compra com venda.'
+          },
+          {
+            name: 'Shein', price: 15, priceLabel: '~15€/peça mitja',
+            badge: 'Econòmic (nou)',
+            description: 'Roba nova a preus molt baixos. Gran varietat i noves col·leccions setmanals.',
+            details: 'Considera l\'impacte mediambiental. Ideal per a peces bàsiques i temporals.'
+          },
+          {
+            name: 'H&M / Primark', price: 20, priceLabel: '~20€/peça',
+            badge: 'Fast fashion estàndard',
+            description: 'Roba nova de qualitat mitja a preus accessibles. Disponibles a BCN.',
+            details: 'H&M té programa de reciclatge de roba. Primark a La Maquinista i Diagonal.'
+          },
+          {
+            name: 'Zara (sales)', price: 25, priceLabel: '~25€/peça en rebaixes',
+            badge: 'Qualitat-preu',
+            description: 'En temporada de rebaixes (gener i juliol) trobes bones peces a bon preu.',
+            details: 'Les sales de Zara online comencen abans que a botiga física.'
+          },
         ],
         tip: 'Vinted és la joia oculta de l\'estalvi en roba. Pots trobar peces de Zara o H&M usades per 3-5€ en perfecte estat.'
       },
@@ -1470,22 +1824,30 @@
       viatges: {
         label: 'viatges i allotjament econòmic',
         options: [
-          { name:'Vueling / Ryanair (anticipació)', price:20, priceLabel:'des de 20€/trajecte',
-            badge:'Millor preu vols',
-            description:'Vols nacionals i europeus des de 20€ si reserves amb 2-3 mesos d\'antelació.',
-            details:'Activa les alertes de preus a Google Flights per als teus destins favorits.' },
-          { name:'Hostal / Alberg (BCN)', price:25, priceLabel:'~25€/nit',
-            badge:'Allotjament econòmic',
-            description:'Albergs i hostals a Barcelona des de 20€/nit. Molts inclouen esmorzar.',
-            details:'Booking.com i Hostelworld. Millors preus reservant directament a la recepció.' },
-          { name:'Interrail (joves)', price:197, priceLabel:'197€ (passe mensual)',
-            badge:'Europa en tren',
-            description:'Passe Interrail Global 1 mes per a menors de 27 anys. Trens il·limitats per Europa.',
-            details:'La millor manera de viatjar per Europa si tens temps i flexibilitat.' },
-          { name:'Blablacar (cotxe compartit)', price:15, priceLabel:'~15€/trajecte BCN-Madrid',
-            badge:'Econòmic terrestre',
-            description:'Compartir cotxe per trajectes llargs. Molt més barat que el tren o avió.',
-            details:'Barcelona-Madrid des de 12€. Barcelona-València des de 8€.' },
+          {
+            name: 'Vueling / Ryanair (anticipació)', price: 20, priceLabel: 'des de 20€/trajecte',
+            badge: 'Millor preu vols',
+            description: 'Vols nacionals i europeus des de 20€ si reserves amb 2-3 mesos d\'antelació.',
+            details: 'Activa les alertes de preus a Google Flights per als teus destins favorits.'
+          },
+          {
+            name: 'Hostal / Alberg (BCN)', price: 25, priceLabel: '~25€/nit',
+            badge: 'Allotjament econòmic',
+            description: 'Albergs i hostals a Barcelona des de 20€/nit. Molts inclouen esmorzar.',
+            details: 'Booking.com i Hostelworld. Millors preus reservant directament a la recepció.'
+          },
+          {
+            name: 'Interrail (joves)', price: 197, priceLabel: '197€ (passe mensual)',
+            badge: 'Europa en tren',
+            description: 'Passe Interrail Global 1 mes per a menors de 27 anys. Trens il·limitats per Europa.',
+            details: 'La millor manera de viatjar per Europa si tens temps i flexibilitat.'
+          },
+          {
+            name: 'Blablacar (cotxe compartit)', price: 15, priceLabel: '~15€/trajecte BCN-Madrid',
+            badge: 'Econòmic terrestre',
+            description: 'Compartir cotxe per trajectes llargs. Molt més barat que el tren o avió.',
+            details: 'Barcelona-Madrid des de 12€. Barcelona-València des de 8€.'
+          },
         ],
         tip: 'Google Flights amb el mode "explorar destins" mostra els llocs més barats per volar des de Barcelona qualsevol cap de setmana.'
       },
@@ -1504,7 +1866,7 @@
       let maxPrice = null;
       for (const pat of pricePatterns) {
         const m = t.match(pat);
-        if (m) { maxPrice = parseFloat(m[1].replace(',','.')); break; }
+        if (m) { maxPrice = parseFloat(m[1].replace(',', '.')); break; }
       }
 
       // --- Detecta categoria per àlies ---
@@ -1512,7 +1874,7 @@
       let bestScore = 0;
 
       // First pass: exact alias match (longest match wins)
-      const aliasKeys = Object.keys(ALIAS).sort((a,b) => b.length - a.length);
+      const aliasKeys = Object.keys(ALIAS).sort((a, b) => b.length - a.length);
       for (const alias of aliasKeys) {
         if (t.includes(alias)) {
           const cat = ALIAS[alias];
@@ -1560,7 +1922,7 @@
       if (maxPrice !== null) {
         const filtered = options.filter(o => o.price <= maxPrice);
         if (filtered.length === 0) {
-          const cheapest = [...options].sort((a,b) => a.price - b.price)[0];
+          const cheapest = [...options].sort((a, b) => a.price - b.price)[0];
           return {
             found: false,
             errorMessage: `No he trobat opcions de ${cat.label} per menys de ${maxPrice}€. L'opció més econòmica disponible és "${cheapest.name}" a ${cheapest.priceLabel}. Vols que et mostri totes les opcions sense filtre de preu?`
@@ -1699,11 +2061,11 @@
       div.className = 'flex gap-3';
 
       const badgeColors = {
-        'Millor preu':          'bg-brand-50 text-brand-700 border-brand-200',
+        'Millor preu': 'bg-brand-50 text-brand-700 border-brand-200',
         'Millor qualitat-preu': 'bg-violet-50 text-violet-700 border-violet-200',
-        'Més popular':          'bg-amber-50 text-amber-700 border-amber-200',
-        'Recomanat':            'bg-blue-50 text-blue-700 border-blue-200',
-        'Econòmic':             'bg-brand-50 text-brand-600 border-brand-200',
+        'Més popular': 'bg-amber-50 text-amber-700 border-amber-200',
+        'Recomanat': 'bg-blue-50 text-blue-700 border-blue-200',
+        'Econòmic': 'bg-brand-50 text-brand-600 border-brand-200',
       };
 
       const optionsHTML = data.options.map((opt, i) => {
@@ -1787,19 +2149,19 @@
     // Despeses per defecte
     const DESPESES_DEFECTE = [
       { nom: 'Lloguer / Residència', import: '' },
-      { nom: 'Transport',            import: '' },
-      { nom: 'Alimentació',          import: '' },
-      { nom: 'Oci i altres',         import: '' },
+      { nom: 'Transport', import: '' },
+      { nom: 'Alimentació', import: '' },
+      { nom: 'Oci i altres', import: '' },
     ];
 
     // Serveis de referència per a recomanacions (preu mensual estimat)
     const SERVEIS_RECOMANATS = [
-      { nom: 'Gimnàs bàsic',         preu: 25,  icona: 'dumbbell',   descripcio: 'Centres low-cost com VivaGym o Altafit' },
+      { nom: 'Gimnàs bàsic', preu: 25, icona: 'dumbbell', descripcio: 'Centres low-cost com VivaGym o Altafit' },
       { nom: 'Transport públic T-Casual', preu: 11.35, icona: 'bus', descripcio: 'T-Casual Barcelona (10 viatges)' },
-      { nom: 'Abonament T-Usual',    preu: 40,  icona: 'train',      descripcio: 'Viatges il·limitats zona 1 Barcelona' },
-      { nom: 'Streaming (bàsic)',    preu: 7.99, icona: 'tv',        descripcio: 'Plataformes de streaming amb pla econòmic' },
-      { nom: 'Gimnàs premium',       preu: 50,  icona: 'activity',   descripcio: 'Centres amb SPA i classes dirigides' },
-      { nom: 'Bicicleta Bicing',     preu: 47.16, icona: 'bike',     descripcio: 'Abonament anual Bicing (3.93€/mes)' },
+      { nom: 'Abonament T-Usual', preu: 40, icona: 'train', descripcio: 'Viatges il·limitats zona 1 Barcelona' },
+      { nom: 'Streaming (bàsic)', preu: 7.99, icona: 'tv', descripcio: 'Plataformes de streaming amb pla econòmic' },
+      { nom: 'Gimnàs premium', preu: 50, icona: 'activity', descripcio: 'Centres amb SPA i classes dirigides' },
+      { nom: 'Bicicleta Bicing', preu: 47.16, icona: 'bike', descripcio: 'Abonament anual Bicing (3.93€/mes)' },
     ];
 
     let despesesDades = [];
@@ -1883,15 +2245,15 @@
 
     function calcularBalanc() {
       const ingressos = parseFloat(document.getElementById('ingressos-nets').value) || 0;
-      const despeses  = despesesDades.reduce((acc, d) => acc + (parseFloat(d.import) || 0), 0);
-      const meta      = parseFloat(document.getElementById('meta-estalvi').value) || 0;
+      const despeses = despesesDades.reduce((acc, d) => acc + (parseFloat(d.import) || 0), 0);
+      const meta = parseFloat(document.getElementById('meta-estalvi').value) || 0;
       const disponible = ingressos - despeses;
       const pct = meta > 0 ? Math.min(Math.round((disponible / meta) * 100), 100) : 0;
 
       // Actualitzar resum si hi ha dades
       if (ingressos > 0 || despeses > 0) {
         document.getElementById('resum-ingressos').textContent = fmt(ingressos);
-        document.getElementById('resum-despeses').textContent  = fmt(despeses);
+        document.getElementById('resum-despeses').textContent = fmt(despeses);
 
         const dispEl = document.getElementById('resum-disponible');
         dispEl.textContent = fmt(disponible);
@@ -1935,7 +2297,7 @@
           viabilitatBloc.classList.remove('hidden');
           const margeReal = ingressos - despeses;
           const margeEstimat = ingressos - COST_VIDA_MITJA;
-          
+
           if (margeReal < meta) {
             // Impossible
             viabilitatBloc.className = 'mt-3 rounded-2xl p-5 border border-red-200 bg-red-50 transition-all';
@@ -1999,7 +2361,7 @@
 
     function guardarPressupost() {
       const ingressos = parseFloat(document.getElementById('ingressos-nets').value) || 0;
-      const meta      = parseFloat(document.getElementById('meta-estalvi').value) || 0;
+      const meta = parseFloat(document.getElementById('meta-estalvi').value) || 0;
       if (ingressos <= 0) {
         document.getElementById('ingressos-nets').focus();
         document.getElementById('ingressos-nets').classList.add('ring-2', 'ring-red-400');
@@ -2037,7 +2399,7 @@
       const navContainer = document.getElementById('categories-nav');
       // Categories clau per mostrar
       const cats = ['supermercats', 'lloguer', 'transport', 'gimnas', 'streaming-video', 'mobil', 'internet'];
-      
+
       cats.forEach((key, i) => {
         const cat = DB[key];
         if (!cat) return;
@@ -2080,7 +2442,7 @@
 
       const optionsContainer = document.getElementById('comparador-options');
       optionsContainer.innerHTML = '';
-      
+
       cat.options.forEach(opt => {
         // Color per indicar on es situa el preu respecte a la mitjana
         let colorClass = 'text-amber-600';
@@ -2101,9 +2463,148 @@
           </div>
         `;
       });
-      
+
       if (window.lucide) lucide.createIcons();
+    }
+
+    // ── MÒDUL AUTENTICACIÓ (Mock) ─────────────────
+    function showGlobalToast(msg, isError = false) {
+      const toast = document.getElementById('global-toast');
+      const toastMsg = document.getElementById('global-toast-msg');
+      const toastIcon = document.getElementById('global-toast-icon');
+      
+      toastMsg.textContent = msg;
+      
+      if (isError) {
+        toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 shadow-lg transform transition-all duration-300 translate-y-0 opacity-100";
+        toastMsg.className = "font-body text-sm font-500 text-red-800";
+        toastIcon.setAttribute('data-lucide', 'alert-circle');
+        toastIcon.className = "w-5 h-5 text-red-500 flex-shrink-0";
+      } else {
+        toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-4 shadow-lg transform transition-all duration-300 translate-y-0 opacity-100";
+        toastMsg.className = "font-body text-sm font-500 text-brand-800";
+        toastIcon.setAttribute('data-lucide', 'check-circle');
+        toastIcon.className = "w-5 h-5 text-brand-500 flex-shrink-0";
+      }
+      if (window.lucide) lucide.createIcons();
+      
+      clearTimeout(window._globalToastTimer);
+      window._globalToastTimer = setTimeout(() => {
+        toast.classList.replace('translate-y-0', 'translate-y-10');
+        toast.classList.replace('opacity-100', 'opacity-0');
+        setTimeout(() => {
+          toast.classList.remove('flex');
+          toast.classList.add('hidden');
+        }, 300);
+      }, 3000);
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      
+      const users = JSON.parse(localStorage.getItem('smartprice_users') || '{}');
+      const user = users[email];
+      
+      if (!user) {
+        showGlobalToast("Aquest correu no està registrat.", true);
+        return;
+      }
+      
+      if (user.password !== password) {
+        showGlobalToast("Contrasenya incorrecta.", true);
+        return;
+      }
+      
+      localStorage.setItem('smartprice_session', email);
+      showGlobalToast("Sessió iniciada correctament amb " + email);
+      showView('pressupost');
+      updateAuthUI(email);
+      document.getElementById('login-form').reset();
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('register-name').value;
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      
+      const users = JSON.parse(localStorage.getItem('smartprice_users') || '{}');
+      
+      if (users[email]) {
+        showGlobalToast("Aquest correu ja està registrat.", true);
+        return;
+      }
+      
+      users[email] = { name, password };
+      localStorage.setItem('smartprice_users', JSON.stringify(users));
+      localStorage.setItem('smartprice_session', email);
+      
+      showGlobalToast("Compte creat correctament per a " + name);
+      showView('pressupost');
+      updateAuthUI(email);
+      document.getElementById('register-form').reset();
+    }
+    
+    function checkSession() {
+      const activeSession = localStorage.getItem('smartprice_session');
+      if (activeSession) {
+        updateAuthUI(activeSession);
+      }
+    }
+
+    function updateAuthUI(email) {
+      const authDesktop = document.getElementById('auth-desktop');
+      const authMobile = document.getElementById('auth-mobile');
+      
+      const loggedInDesktop = `
+        <div class="flex items-center gap-3">
+          <span class="font-display font-600 text-sm text-ink-muted">${email}</span>
+          <button onclick="logout()" class="font-display font-600 text-sm text-red-500 hover:text-red-600 transition-colors px-3 py-1.5 border border-red-200 hover:border-red-300 rounded-full bg-red-50">Tancar sessió</button>
+        </div>
+      `;
+      
+      const loggedInMobile = `
+        <div class="flex gap-2 pt-2 pb-1 flex-col">
+          <span class="font-display font-600 text-sm text-ink-muted text-center">${email}</span>
+          <button onclick="logout();toggleMenu()" class="w-full font-display font-600 text-sm text-red-500 border border-red-200 rounded-full py-2 hover:bg-red-50 transition-colors">Tancar sessió</button>
+        </div>
+      `;
+      
+      if(authDesktop) authDesktop.innerHTML = loggedInDesktop;
+      if(authMobile) authMobile.innerHTML = loggedInMobile;
+    }
+
+    function logout() {
+      localStorage.removeItem('smartprice_session');
+      
+      const authDesktop = document.getElementById('auth-desktop');
+      const authMobile = document.getElementById('auth-mobile');
+      
+      const loggedOutDesktop = `
+        <button onclick="showView('login')"
+          class="font-display font-600 text-sm text-ink-muted hover:text-ink transition-colors px-3 py-1.5">Entrar</button>
+        <button onclick="showView('register')"
+          class="font-display font-700 text-sm text-white bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded-full shadow-glow-green transition-all hover:scale-105">
+          Registra't gratis
+        </button>
+      `;
+      
+      const loggedOutMobile = `
+        <button onclick="showView('login');toggleMenu()"
+          class="flex-1 font-display font-600 text-sm text-ink-muted border border-ink-muted/20 rounded-full py-2 hover:border-brand-400 transition-colors">Entrar</button>
+        <button onclick="showView('register');toggleMenu()"
+          class="flex-1 font-display font-700 text-sm text-white bg-brand-500 rounded-full py-2 hover:bg-brand-600 transition-colors">Registra't</button>
+      `;
+      
+      if(authDesktop) authDesktop.innerHTML = loggedOutDesktop;
+      if(authMobile) authMobile.innerHTML = loggedOutMobile;
+      
+      showGlobalToast("Has tancat la sessió.");
+      showView('inici');
     }
   </script>
 </body>
+
 </html>
