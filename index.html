@@ -228,6 +228,9 @@
       box-shadow: 0 0 6px rgba(248, 113, 113, 0.5);
     }
   </style>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -591,6 +594,13 @@
                   style="width:0%"></div>
               </div>
               <p class="font-body text-xs text-ink-muted/70 mt-1.5" id="resum-msg"></p>
+            </div>
+          </div>
+
+          <div id="chart-container" class="mt-3 rounded-2xl p-5 border border-ink-muted/10 bg-white hidden">
+            <p class="font-display font-700 text-sm text-ink mb-3">Distribució del teu pressupost</p>
+            <div class="relative w-full h-48 flex justify-center">
+              <canvas id="pressupost-chart"></canvas>
             </div>
           </div>
 
@@ -2356,7 +2366,84 @@
         }
 
         document.getElementById('balanc-resum').classList.remove('hidden');
+        dibuixarGrafic();
       }
+    }
+    
+    let pressupostChartInstance = null;
+    function dibuixarGrafic() {
+      const chartContainer = document.getElementById('chart-container');
+      const ingressos = parseFloat(document.getElementById('ingressos-nets').value) || 0;
+      
+      if (despesesDades.length === 0 && ingressos === 0) {
+        chartContainer.classList.add('hidden');
+        return;
+      }
+      
+      chartContainer.classList.remove('hidden');
+      const ctx = document.getElementById('pressupost-chart').getContext('2d');
+      
+      let labels = [];
+      let data = [];
+      let backgroundColors = [];
+      
+      const colors = ['#f87171', '#fbbf24', '#60a5fa', '#a78bfa', '#f472b6', '#34d399'];
+      
+      let totalDespeses = 0;
+      despesesDades.forEach((d, index) => {
+        const importDespesa = parseFloat(d.import) || 0;
+        if (importDespesa > 0) {
+          labels.push(d.nom || ('Despesa ' + (index+1)));
+          data.push(importDespesa);
+          backgroundColors.push(colors[index % colors.length]);
+          totalDespeses += importDespesa;
+        }
+      });
+      
+      const restant = ingressos - totalDespeses;
+      if (restant > 0) {
+        labels.push('Marge disponible');
+        data.push(restant);
+        backgroundColors.push('#22c55e'); // brand-500
+      } else if (restant < 0) {
+        // Si hi ha deute, afegim una franja vermella i reduïm o eliminen l'àrea? Millor no mostrar "disponible".
+      }
+      
+      if (pressupostChartInstance) {
+        pressupostChartInstance.destroy();
+      }
+      
+      pressupostChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: backgroundColors,
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                font: {
+                  family: "'DM Sans', sans-serif",
+                  size: 11
+                },
+                usePointStyle: true,
+                padding: 15
+              }
+            }
+          },
+          cutout: '65%'
+        }
+      });
     }
 
     function guardarPressupost() {
