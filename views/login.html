@@ -18,7 +18,7 @@
         <div class="space-y-1.5">
           <div class="flex justify-between items-center">
             <label for="login-password" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Contrasenya</label>
-            <a href="#" class="font-body text-xs text-brand-600 hover:underline">Has oblidat la contrasenya?</a>
+            <button type="button" onclick="toggleRecoveryPanel()" class="font-body text-xs text-brand-600 hover:underline">Has oblidat la contrasenya?</button>
           </div>
           <input type="password" id="login-password" required placeholder="••••••••" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
         </div>
@@ -28,6 +28,26 @@
           Entrar
         </button>
       </form>
+
+      <!-- Panel de recuperació de contrasenya -->
+      <div id="recovery-panel" class="hidden mt-5 pt-5 border-t border-ink-muted/10">
+        <p class="font-display font-700 text-sm text-ink mb-1">Recupera la teva contrasenya</p>
+        <p class="font-body text-xs text-ink-muted mb-4">Introdueix el teu correu i t'enviarem les instruccions de recuperació.</p>
+        <form id="recovery-form" onsubmit="handleRecovery(event)" class="space-y-3">
+          <div class="space-y-1.5">
+            <label for="recovery-email" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Correu electrònic</label>
+            <input type="email" id="recovery-email" required placeholder="nom@exemple.com" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+          </div>
+          <button type="submit" class="w-full h-12 rounded-xl bg-brand-500 hover:bg-brand-600 font-display font-700 text-sm text-white shadow-glow-green transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
+            <i data-lucide="mail" class="w-4 h-4"></i>
+            Enviar instruccions
+          </button>
+        </form>
+        <div id="recovery-success" class="hidden mt-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 flex items-start gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4 text-brand-500 flex-shrink-0 mt-0.5"></i>
+          <p id="recovery-success-msg" class="font-body text-sm text-brand-700 leading-relaxed"></p>
+        </div>
+      </div>
       
       <div class="mt-6 pt-6 border-t border-ink-muted/10 text-center">
         <p class="font-body text-sm text-ink-muted">

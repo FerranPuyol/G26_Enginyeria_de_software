@@ -22,7 +22,29 @@
         
         <div class="space-y-1.5">
           <label for="register-password" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Contrasenya</label>
-          <input type="password" id="register-password" required placeholder="Mínim 8 caràcters" minlength="8" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+          <input type="password" id="register-password" required placeholder="Mínim 8 caràcters" minlength="8" oninput="checkPasswordStrength(this.value)" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+          <!-- Barra de força -->
+          <div id="password-strength-bar" class="hidden pt-1">
+            <div class="flex gap-1 mb-1">
+              <div id="strength-seg-1" class="h-1.5 flex-1 rounded-full bg-ink-muted/10 transition-all duration-300"></div>
+              <div id="strength-seg-2" class="h-1.5 flex-1 rounded-full bg-ink-muted/10 transition-all duration-300"></div>
+              <div id="strength-seg-3" class="h-1.5 flex-1 rounded-full bg-ink-muted/10 transition-all duration-300"></div>
+              <div id="strength-seg-4" class="h-1.5 flex-1 rounded-full bg-ink-muted/10 transition-all duration-300"></div>
+            </div>
+            <p id="strength-label" class="font-body text-xs text-ink-muted/70"></p>
+          </div>
+          <!-- Requisits -->
+          <ul id="password-requirements" class="hidden space-y-0.5 mt-1">
+            <li id="req-length" class="font-body text-xs flex items-center gap-1.5 text-ink-muted/60"><span class="req-icon">○</span> Mínim 8 caràcters</li>
+            <li id="req-upper" class="font-body text-xs flex items-center gap-1.5 text-ink-muted/60"><span class="req-icon">○</span> Almenys 1 majúscula</li>
+            <li id="req-lower" class="font-body text-xs flex items-center gap-1.5 text-ink-muted/60"><span class="req-icon">○</span> Almenys 1 minúscula</li>
+            <li id="req-number" class="font-body text-xs flex items-center gap-1.5 text-ink-muted/60"><span class="req-icon">○</span> Almenys 1 número o símbol</li>
+          </ul>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="register-password-confirm" class="font-body text-xs font-600 text-ink-muted uppercase tracking-wide">Confirma la contrasenya</label>
+          <input type="password" id="register-password-confirm" required placeholder="Repeteix la contrasenya" class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 px-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
         </div>
         
         <button type="submit" class="w-full h-12 rounded-xl bg-brand-500 hover:bg-brand-600 font-display font-700 text-sm text-white shadow-glow-green transition-all hover:scale-[1.02] flex items-center justify-center gap-2 mt-4">

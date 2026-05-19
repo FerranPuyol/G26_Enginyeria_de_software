@@ -1658,27 +1658,131 @@
 
     function handleRegister(e) {
       e.preventDefault();
-      const name = document.getElementById('register-name').value;
-      const email = document.getElementById('register-email').value;
+      const name = document.getElementById('register-name').value.trim();
+      const email = document.getElementById('register-email').value.trim();
       const password = document.getElementById('register-password').value;
-      
-      const users = JSON.parse(localStorage.getItem('smartprice_users') || '{}');
-      
-      if (users[email]) {
-        showGlobalToast("Aquest correu ja està registrat.", true);
+      const confirmPassword = document.getElementById('register-password-confirm')?.value;
+
+      // Validació de seguretat de contrasenya
+      const pwErrors = validatePassword(password);
+      if (pwErrors.length > 0) {
+        showGlobalToast('La contrasenya no compleix els requisits: ' + pwErrors[0], true);
+        document.getElementById('register-password').focus();
         return;
       }
-      
+
+      // Validació confirmació
+      if (confirmPassword !== undefined && password !== confirmPassword) {
+        showGlobalToast('Les contrasenyes no coincideixen.', true);
+        document.getElementById('register-password-confirm').focus();
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem('smartprice_users') || '{}');
+
+      if (users[email]) {
+        showGlobalToast('Aquest correu ja està registrat.', true);
+        return;
+      }
+
       users[email] = { name, password };
       localStorage.setItem('smartprice_users', JSON.stringify(users));
       localStorage.setItem('smartprice_session', email);
-      
-      showGlobalToast("Compte creat correctament per a " + name);
+
+      showGlobalToast('Compte creat correctament per a ' + name);
       showView('pressupost');
       updateAuthUI(email);
       document.getElementById('register-form').reset();
+      checkPasswordStrength(''); // reset indicador
     }
     
+    // ── VALIDACIÓ DE CONTRASENYA ────────────────────
+    function validatePassword(password) {
+      const errors = [];
+      if (password.length < 8)       errors.push('mínim 8 caràcters');
+      if (!/[A-Z]/.test(password))   errors.push('almenys 1 majúscula');
+      if (!/[a-z]/.test(password))   errors.push('almenys 1 minúscula');
+      if (!/[\d\W_]/.test(password)) errors.push('almenys 1 número o símbol');
+      return errors;
+    }
+
+    function checkPasswordStrength(val) {
+      const bar  = document.getElementById('password-strength-bar');
+      const reqs = document.getElementById('password-requirements');
+      if (!bar || !reqs) return;
+
+      if (!val) {
+        bar.classList.add('hidden');
+        reqs.classList.add('hidden');
+        return;
+      }
+      bar.classList.remove('hidden');
+      reqs.classList.remove('hidden');
+
+      const checks = {
+        length: val.length >= 8,
+        upper:  /[A-Z]/.test(val),
+        lower:  /[a-z]/.test(val),
+        number: /[\d\W_]/.test(val),
+      };
+
+      // Actualitza icones de requisits
+      Object.entries(checks).forEach(([key, pass]) => {
+        const el   = document.getElementById('req-' + key);
+        if (!el) return;
+        const icon = el.querySelector('.req-icon');
+        el.className = 'font-body text-xs flex items-center gap-1.5 transition-colors ' +
+          (pass ? 'text-brand-600' : 'text-ink-muted/60');
+        if (icon) icon.textContent = pass ? '\u2713' : '\u25cb';
+      });
+
+      // Barra de força
+      const score = Object.values(checks).filter(Boolean).length;
+      const segColors = { 1: '#f87171', 2: '#fbbf24', 3: '#fbbf24', 4: '#22c55e' };
+      ['strength-seg-1','strength-seg-2','strength-seg-3','strength-seg-4'].forEach((id, i) => {
+        const seg = document.getElementById(id);
+        if (seg) seg.style.backgroundColor = i < score ? (segColors[score] || '') : '';
+      });
+
+      const labelEl = document.getElementById('strength-label');
+      const labels  = { 1: 'Molt feble', 2: 'Feble', 3: 'Bona', 4: 'Forta' };
+      const lcls    = { 1: 'text-red-400', 2: 'text-amber-500', 3: 'text-amber-500', 4: 'text-brand-600' };
+      if (labelEl) {
+        labelEl.textContent = labels[score] || '';
+        labelEl.className   = 'font-body text-xs ' + (lcls[score] || 'text-ink-muted/70');
+      }
+    }
+
+    // ── RECUPERACIÓ DE CONTRASENYA ────────────────
+    function toggleRecoveryPanel() {
+      const panel = document.getElementById('recovery-panel');
+      if (!panel) return;
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) {
+        const form    = document.getElementById('recovery-form');
+        const success = document.getElementById('recovery-success');
+        if (form)    form.classList.remove('hidden');
+        if (success) { success.classList.add('hidden'); success.classList.remove('flex'); }
+        const emailInput = document.getElementById('recovery-email');
+        if (emailInput) { emailInput.value = ''; emailInput.focus(); }
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function handleRecovery(e) {
+      e.preventDefault();
+      const email   = document.getElementById('recovery-email').value.trim();
+      const form    = document.getElementById('recovery-form');
+      const success = document.getElementById('recovery-success');
+      const msg     = document.getElementById('recovery-success-msg');
+
+      form.classList.add('hidden');
+      success.classList.remove('hidden');
+      success.classList.add('flex');
+      msg.textContent = `Si existeix un compte associat a ${email}, rebràs les instruccions de recuperació en breus moments. Comprova també la carpeta de spam.`;
+      if (window.lucide) lucide.createIcons();
+    }
+
     function checkSession() {
       const activeSession = localStorage.getItem('smartprice_session');
       if (activeSession) {
