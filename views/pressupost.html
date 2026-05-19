@@ -29,9 +29,10 @@
             <span
               class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">&euro;</span>
             <input id="ingressos-nets" type="number" min="0" step="1" placeholder="ex: 1000"
-              oninput="calcularBalanc()"
+              oninput="validarNegatiu(this,'error-ingressos');calcularBalanc()"
               class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 pl-9 pr-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
           </div>
+          <p id="error-ingressos" class="hidden font-body text-xs text-red-500 font-600 mt-0.5">No es permeten números negatius</p>
           <p class="font-body text-xs text-ink-muted/60">Suma aqui el teu sou net, beca, ajuda familiar i qualsevol
             altre ingres mensual.</p>
         </div>
@@ -76,9 +77,10 @@
           <div class="relative">
             <span
               class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">&euro;</span>
-            <input id="meta-estalvi" type="number" min="0" step="1" placeholder="ex: 150" oninput="calcularBalanc()"
+            <input id="meta-estalvi" type="number" min="0" step="1" placeholder="ex: 150" oninput="validarNegatiu(this,'error-meta');calcularBalanc()"
               class="w-full h-12 rounded-xl border-2 border-violet-200 bg-violet-50/40 pl-9 pr-4 font-body text-sm text-ink placeholder-violet-300 focus:outline-none focus:border-violet-500 focus:bg-white transition-colors" />
           </div>
+          <p id="error-meta" class="hidden font-body text-xs text-red-500 font-600 mt-0.5">No es permeten números negatius</p>
           <p class="font-body text-xs text-ink-muted/60">Defineix la quantitat minima que vols reservar al final de
             mes.</p>
         </div>
