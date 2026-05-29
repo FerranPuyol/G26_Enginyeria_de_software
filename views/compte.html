@@ -1,0 +1,107 @@
+<!-- ─────────────────────────────────────────────
+     VISTA: EL MEU COMPTE
+───────────────────────────────────────────── -->
+<section id="view-compte" class="view">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 py-20">
+
+    <div class="mb-10">
+      <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">El meu Compte</h1>
+      <p class="font-body text-lg text-ink-muted">Gestiona el teu perfil i consulta les teves estadístiques.</p>
+    </div>
+
+    <!-- No auth -->
+    <div id="compte-no-auth" class="hidden text-center py-20">
+      <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="lock" class="w-8 h-8 text-amber-400"></i>
+      </div>
+      <h3 class="font-display font-700 text-xl text-ink mb-2">Cal iniciar sessió</h3>
+      <p class="font-body text-sm text-ink-muted mb-6">Inicia sessió per veure el teu compte i estadístiques.</p>
+      <button onclick="showView('login')"
+        class="font-display font-700 text-sm text-white bg-brand-500 px-6 py-3 rounded-full hover:bg-brand-600 transition-colors">
+        Iniciar sessió
+      </button>
+    </div>
+
+    <div id="compte-content" class="hidden space-y-5">
+
+      <!-- ── Perfil ── -->
+      <div class="bento-card p-7">
+        <div class="flex items-center gap-5 mb-6">
+          <div class="w-16 h-16 bg-brand-500 rounded-2xl flex items-center justify-center shadow-glow-green flex-shrink-0">
+            <span id="compte-initials" class="font-display font-800 text-2xl text-white">?</span>
+          </div>
+          <div>
+            <h2 id="compte-name" class="font-display font-700 text-xl text-ink leading-tight">—</h2>
+            <p id="compte-email" class="font-body text-sm text-ink-muted mt-0.5">—</p>
+          </div>
+        </div>
+        <div class="border-t border-ink-muted/10 pt-5">
+          <p class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide mb-3">Canviar nom</p>
+          <div class="flex gap-3">
+            <input type="text" id="compte-new-name" placeholder="Nou nom..."
+              class="flex-1 h-11 rounded-xl border-2 border-ink-muted/20 px-4 font-body text-sm text-ink focus:outline-none focus:border-brand-400 transition-colors" />
+            <button onclick="canviarNom()"
+              class="h-11 px-5 font-display font-600 text-sm text-white bg-brand-500 hover:bg-brand-600 rounded-xl transition-colors">
+              Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Estadístiques ── -->
+      <div class="bento-card p-7">
+        <h3 class="font-display font-700 text-base text-ink mb-5 flex items-center gap-2">
+          <i data-lucide="bar-chart-2" class="w-4 h-4 text-brand-500"></i>
+          Les meves estadístiques
+        </h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-brand-50 rounded-2xl p-4 text-center">
+            <p id="stat-total" class="font-display font-800 text-3xl text-brand-600 leading-none">—</p>
+            <p class="font-body text-xs text-ink-muted mt-2">Pressupostos guardats</p>
+          </div>
+          <div class="bg-violet-50 rounded-2xl p-4 text-center">
+            <p id="stat-avg-balanc" class="font-display font-800 text-xl text-violet-600 leading-none">—</p>
+            <p class="font-body text-xs text-ink-muted mt-2">Balanç mensual mitjà</p>
+          </div>
+          <div class="bg-emerald-50 rounded-2xl p-4 text-center">
+            <p id="stat-avg-estalvi" class="font-display font-800 text-xl text-emerald-600 leading-none">—</p>
+            <p class="font-body text-xs text-ink-muted mt-2">Meta d'estalvi mitjana</p>
+          </div>
+          <div class="bg-blue-50 rounded-2xl p-4 text-center">
+            <p id="stat-avaluacions" class="font-display font-800 text-3xl text-blue-600 leading-none">—</p>
+            <p class="font-body text-xs text-ink-muted mt-2">Mesos avaluats</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Accés ràpid ── -->
+      <div class="bento-card p-7">
+        <h3 class="font-display font-700 text-base text-ink mb-4 flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-brand-500"></i>
+          Accés ràpid
+        </h3>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="showView('pressupost')"
+            class="font-display font-600 text-sm text-brand-600 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-4 py-2 rounded-full transition-colors flex items-center gap-2">
+            <i data-lucide="calculator" class="w-4 h-4"></i> Nou pressupost
+          </button>
+          <button onclick="showView('historial')"
+            class="font-display font-600 text-sm text-ink-muted bg-surface hover:bg-brand-50 border border-ink-muted/20 hover:border-brand-300 px-4 py-2 rounded-full transition-colors flex items-center gap-2">
+            <i data-lucide="history" class="w-4 h-4"></i> Veure historial
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Sessió ── -->
+      <div class="bento-card p-7">
+        <h3 class="font-display font-700 text-base text-ink mb-4">Sessió</h3>
+        <button onclick="logout()"
+          class="font-display font-600 text-sm text-red-500 border border-red-200 bg-red-50 hover:bg-red-100 px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          Tancar sessió
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>

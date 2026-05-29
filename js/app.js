@@ -1,27 +1,25 @@
 // ── View routing ──────────────────────────────
-    const views = ['inici', 'pressupost', 'comparador', 'assessor', 'login', 'register'];
-    const navIds = ['inici', 'pressupost', 'comparador', 'assessor'];
-    const navDesktop = { inici: 'nav-inici', pressupost: 'nav-pressupost', comparador: 'nav-comparador', assessor: 'nav-assessor' };
-    const navMobile = { inici: 'mnav-inici', pressupost: 'mnav-pressupost', comparador: 'mnav-comparador', assessor: 'mnav-assessor' };
+    const views = ['inici', 'pressupost', 'comparador', 'assessor', 'login', 'register', 'historial', 'compte'];
+    const navIds = ['inici', 'pressupost', 'comparador', 'assessor', 'historial', 'compte'];
+    const navDesktop = { inici: 'nav-inici', pressupost: 'nav-pressupost', comparador: 'nav-comparador', assessor: 'nav-assessor', historial: 'nav-historial', compte: 'nav-compte' };
+    const navMobile  = { inici: 'mnav-inici', pressupost: 'mnav-pressupost', comparador: 'mnav-comparador', assessor: 'mnav-assessor', historial: 'mnav-historial', compte: 'mnav-compte' };
 
     function showView(name) {
-      // toggle views
       views.forEach(v => {
         const el = document.getElementById('view-' + v);
-        el.classList.toggle('active', v === name);
+        if (el) el.classList.toggle('active', v === name);
       });
-      // toggle nav pills — desktop
       Object.keys(navDesktop).forEach(k => {
         const el = document.getElementById(navDesktop[k]);
         if (el) el.classList.toggle('active', k === name);
       });
-      // toggle nav pills — mobile
       Object.keys(navMobile).forEach(k => {
         const el = document.getElementById(navMobile[k]);
         if (el) el.classList.toggle('active', k === name);
       });
-      // scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (name === 'historial') initHistorial();
+      if (name === 'compte')   initCompte();
     }
 
     // ── Mobile hamburger ──────────────────────────
@@ -1514,7 +1512,6 @@
     function guardarPressupost() {
       if (teCampsNegatius()) return;
       const ingressos = parseFloat(document.getElementById('ingressos-nets').value) || 0;
-      const meta = parseFloat(document.getElementById('meta-estalvi').value) || 0;
       if (ingressos <= 0) {
         document.getElementById('ingressos-nets').focus();
         document.getElementById('ingressos-nets').classList.add('ring-2', 'ring-red-400');
@@ -1523,8 +1520,8 @@
       }
       calcularBalanc();
       const resEl = document.getElementById('balanc-resum');
-      const navH = 64 + 16; // fixed navbar height + padding
-      const top = resEl.getBoundingClientRect().top + window.scrollY - navH;
+      const navH  = 64 + 16;
+      const top   = resEl.getBoundingClientRect().top + window.scrollY - navH;
       window.scrollTo({ top, behavior: 'smooth' });
     }
 
@@ -1652,39 +1649,36 @@
       }, 3000);
     }
 
-    function handleLogin(e) {
+    async function handleLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('login-email').value;
+      const email    = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
-      
-      const users = JSON.parse(localStorage.getItem('smartprice_users') || '{}');
-      const user = users[email];
-      
-      if (!user) {
-        showGlobalToast("Aquest correu no està registrat.", true);
-        return;
+
+      try {
+        const { user } = await dbLogin(email, password);
+        const name = user.user_metadata?.full_name || email;
+        showGlobalToast("Sessió iniciada correctament amb " + email);
+        showView('pressupost');
+        updateAuthUI(email, name);
+        document.getElementById('login-form').reset();
+      } catch (err) {
+        if (err.message.includes('Invalid login credentials')) {
+          showGlobalToast("Correu o contrasenya incorrectes.", true);
+        } else if (err.message.includes('Email not confirmed')) {
+          showGlobalToast("Confirma el teu correu electrònic abans d'entrar.", true);
+        } else {
+          showGlobalToast("Error en iniciar sessió: " + err.message, true);
+        }
       }
-      
-      if (user.password !== password) {
-        showGlobalToast("Contrasenya incorrecta.", true);
-        return;
-      }
-      
-      localStorage.setItem('smartprice_session', email);
-      showGlobalToast("Sessió iniciada correctament amb " + email);
-      showView('pressupost');
-      updateAuthUI(email);
-      document.getElementById('login-form').reset();
     }
 
-    function handleRegister(e) {
+    async function handleRegister(e) {
       e.preventDefault();
-      const name = document.getElementById('register-name').value.trim();
-      const email = document.getElementById('register-email').value.trim();
-      const password = document.getElementById('register-password').value;
+      const name            = document.getElementById('register-name').value.trim();
+      const email           = document.getElementById('register-email').value.trim();
+      const password        = document.getElementById('register-password').value;
       const confirmPassword = document.getElementById('register-password-confirm')?.value;
 
-      // Validació de seguretat de contrasenya
       const pwErrors = validatePassword(password);
       if (pwErrors.length > 0) {
         showGlobalToast('La contrasenya no compleix els requisits: ' + pwErrors[0], true);
@@ -1692,29 +1686,25 @@
         return;
       }
 
-      // Validació confirmació
       if (confirmPassword !== undefined && password !== confirmPassword) {
         showGlobalToast('Les contrasenyes no coincideixen.', true);
         document.getElementById('register-password-confirm').focus();
         return;
       }
 
-      const users = JSON.parse(localStorage.getItem('smartprice_users') || '{}');
-
-      if (users[email]) {
-        showGlobalToast('Aquest correu ja està registrat.', true);
-        return;
+      try {
+        await dbRegister(name, email, password);
+        showGlobalToast('Compte creat correctament per a ' + name + '! Comprova el teu correu per confirmar el compte.');
+        showView('login');
+        document.getElementById('register-form').reset();
+        checkPasswordStrength('');
+      } catch (err) {
+        if (err.message.includes('already registered') || err.message.includes('already been registered')) {
+          showGlobalToast('Aquest correu ja està registrat.', true);
+        } else {
+          showGlobalToast('Error en crear compte: ' + err.message, true);
+        }
       }
-
-      users[email] = { name, password };
-      localStorage.setItem('smartprice_users', JSON.stringify(users));
-      localStorage.setItem('smartprice_session', email);
-
-      showGlobalToast('Compte creat correctament per a ' + name);
-      showView('pressupost');
-      updateAuthUI(email);
-      document.getElementById('register-form').reset();
-      checkPasswordStrength(''); // reset indicador
     }
     
     // ── VALIDACIÓ DE CONTRASENYA ────────────────────
@@ -1804,41 +1794,44 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    function checkSession() {
-      const activeSession = localStorage.getItem('smartprice_session');
-      if (activeSession) {
-        updateAuthUI(activeSession);
+    async function checkSession() {
+      const session = await dbGetSession();
+      if (session) {
+        const email = session.user.email;
+        const name  = session.user.user_metadata?.full_name || email;
+        updateAuthUI(email, name);
       }
     }
 
-    function updateAuthUI(email) {
-      const authDesktop = document.getElementById('auth-desktop');
-      const authMobile = document.getElementById('auth-mobile');
-      
+    function updateAuthUI(email, name) {
+      const authDesktop  = document.getElementById('auth-desktop');
+      const authMobile   = document.getElementById('auth-mobile');
+      const displayLabel = name && name !== email ? name : email;
+
       const loggedInDesktop = `
         <div class="flex items-center gap-3">
-          <span class="font-display font-600 text-sm text-ink-muted">${email}</span>
+          <span class="font-display font-600 text-sm text-ink-muted">${displayLabel}</span>
           <button onclick="logout()" class="font-display font-600 text-sm text-red-500 hover:text-red-600 transition-colors px-3 py-1.5 border border-red-200 hover:border-red-300 rounded-full bg-red-50">Tancar sessió</button>
         </div>
       `;
-      
+
       const loggedInMobile = `
         <div class="flex gap-2 pt-2 pb-1 flex-col">
-          <span class="font-display font-600 text-sm text-ink-muted text-center">${email}</span>
+          <span class="font-display font-600 text-sm text-ink-muted text-center">${displayLabel}</span>
           <button onclick="logout();toggleMenu()" class="w-full font-display font-600 text-sm text-red-500 border border-red-200 rounded-full py-2 hover:bg-red-50 transition-colors">Tancar sessió</button>
         </div>
       `;
-      
-      if(authDesktop) authDesktop.innerHTML = loggedInDesktop;
-      if(authMobile) authMobile.innerHTML = loggedInMobile;
+
+      if (authDesktop) authDesktop.innerHTML = loggedInDesktop;
+      if (authMobile)  authMobile.innerHTML  = loggedInMobile;
     }
 
-    function logout() {
-      localStorage.removeItem('smartprice_session');
-      
+    async function logout() {
+      try { await dbLogout(); } catch (err) { console.error('Error tancant sessió:', err); }
+
       const authDesktop = document.getElementById('auth-desktop');
-      const authMobile = document.getElementById('auth-mobile');
-      
+      const authMobile  = document.getElementById('auth-mobile');
+
       const loggedOutDesktop = `
         <button onclick="showView('login')"
           class="font-display font-600 text-sm text-ink-muted hover:text-ink transition-colors px-3 py-1.5">Entrar</button>
@@ -1847,18 +1840,369 @@
           Registra't gratis
         </button>
       `;
-      
+
       const loggedOutMobile = `
         <button onclick="showView('login');toggleMenu()"
           class="flex-1 font-display font-600 text-sm text-ink-muted border border-ink-muted/20 rounded-full py-2 hover:border-brand-400 transition-colors">Entrar</button>
         <button onclick="showView('register');toggleMenu()"
           class="flex-1 font-display font-700 text-sm text-white bg-brand-500 rounded-full py-2 hover:bg-brand-600 transition-colors">Registra't</button>
       `;
-      
-      if(authDesktop) authDesktop.innerHTML = loggedOutDesktop;
-      if(authMobile) authMobile.innerHTML = loggedOutMobile;
-      
+
+      if (authDesktop) authDesktop.innerHTML = loggedOutDesktop;
+      if (authMobile)  authMobile.innerHTML  = loggedOutMobile;
+
       showGlobalToast("Has tancat la sessió.");
       showView('inici');
     }
-  
+
+
+    // ══════════════════════════════════════════════
+    //  MÒDUL MODAL DESAR PRESSUPOST
+    // ══════════════════════════════════════════════
+
+    const MESOS_CA = ['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'];
+
+    function obrirModalDesar() {
+      const ingressos = parseFloat(document.getElementById('ingressos-nets').value) || 0;
+      if (ingressos <= 0) {
+        showGlobalToast('Primer calcula el pressupost abans de desar-lo.', true);
+        return;
+      }
+      // Omplir selector d'anys (any actual i 2 anteriors)
+      const anySelect = document.getElementById('desar-any');
+      if (anySelect && !anySelect.options.length) {
+        const ara = new Date().getFullYear();
+        for (let y = ara; y >= ara - 2; y--) {
+          const opt = document.createElement('option');
+          opt.value = y; opt.textContent = y;
+          anySelect.appendChild(opt);
+        }
+      }
+      // Preseleccionar mes actual
+      const mesSelect = document.getElementById('desar-mes');
+      if (mesSelect) mesSelect.value = new Date().getMonth() + 1;
+      // Netejar nom
+      const nomInput = document.getElementById('desar-nom');
+      if (nomInput) nomInput.value = '';
+
+      const modal = document.getElementById('modal-desar');
+      if (modal) { modal.classList.remove('hidden'); if (window.lucide) lucide.createIcons(); }
+    }
+
+    function tancarModalDesar() {
+      const modal = document.getElementById('modal-desar');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function confirmarDesar() {
+      const user = await dbGetUser();
+      if (!user) {
+        showGlobalToast('Cal iniciar sessió per desar pressupostos.', true);
+        tancarModalDesar();
+        showView('login');
+        return;
+      }
+
+      const ingressos     = parseFloat(document.getElementById('ingressos-nets').value) || 0;
+      const meta          = parseFloat(document.getElementById('meta-estalvi').value) || 0;
+      const totalDespeses = despesesDades.reduce((acc, d) => acc + (parseFloat(d.import) || 0), 0);
+      const balanc        = ingressos - totalDespeses;
+      const mes           = parseInt(document.getElementById('desar-mes').value);
+      const year          = parseInt(document.getElementById('desar-any').value);
+      const nom           = document.getElementById('desar-nom').value.trim();
+
+      const btn = document.getElementById('btn-confirmar-desar');
+      if (btn) { btn.disabled = true; btn.textContent = 'Desant...'; }
+
+      try {
+        await dbSavePressupost({ ingressos, metaEstalvi: meta, despeses: despesesDades, totalDespeses, balanc, nom, mes, year });
+        tancarModalDesar();
+        mostrarToastGuardar();
+      } catch (err) {
+        showGlobalToast('Error en desar: ' + err.message, true);
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="save" class="w-4 h-4 inline mr-2"></i>Desar a la base de dades'; if (window.lucide) lucide.createIcons(); }
+      }
+    }
+
+
+    // ══════════════════════════════════════════════
+    //  MÒDUL HISTORIAL
+    // ══════════════════════════════════════════════
+
+    async function initHistorial() {
+      const elNoAuth  = document.getElementById('historial-no-auth');
+      const elLoading = document.getElementById('historial-loading');
+      const elEmpty   = document.getElementById('historial-empty');
+      const elList    = document.getElementById('historial-list');
+      if (!elList) return;
+
+      [elNoAuth, elLoading, elEmpty, elList].forEach(el => el && el.classList.add('hidden'));
+
+      const user = await dbGetUser();
+      if (!user) { elNoAuth && elNoAuth.classList.remove('hidden'); return; }
+
+      elLoading && elLoading.classList.remove('hidden');
+
+      try {
+        const pressupostos = await dbGetPressupostos();
+        elLoading && elLoading.classList.add('hidden');
+
+        if (!pressupostos.length) { elEmpty && elEmpty.classList.remove('hidden'); return; }
+
+        elList.innerHTML = '';
+        for (const p of pressupostos) {
+          const avaluacio = await dbGetAvaluacioByPressupost(p.id);
+          elList.appendChild(crearTarjetaHistorial(p, avaluacio));
+        }
+        elList.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+      } catch (err) {
+        elLoading && elLoading.classList.add('hidden');
+        showGlobalToast('Error carregant historial: ' + err.message, true);
+      }
+    }
+
+    function crearTarjetaHistorial(p, avaluacio) {
+      const mesNom = p.mes ? MESOS_CA[p.mes - 1] : '';
+      const period = mesNom && p.year ? `${mesNom} ${p.year}` : '';
+      const titol  = p.nom ? (period ? `${p.nom} — ${period}` : p.nom) : (period || 'Pressupost');
+      const data   = new Date(p.created_at).toLocaleDateString('ca-ES');
+
+      const avaluat = avaluacio !== null;
+      let badgeHtml = '';
+      if (avaluat) {
+        badgeHtml = avaluacio.ha_estalviat
+          ? `<span class="flex-shrink-0 font-display font-600 text-xs px-3 py-1 rounded-full bg-brand-50 text-brand-600 border border-brand-200">✓ Ha estalviat</span>`
+          : `<span class="flex-shrink-0 font-display font-600 text-xs px-3 py-1 rounded-full bg-red-50 text-red-500 border border-red-200">✗ No ha estalviat</span>`;
+      } else {
+        badgeHtml = `<button onclick="obrirModalAvaluacio('${p.id}','${titol.replace(/'/g,"\\'")}')"
+          class="flex-shrink-0 font-display font-600 text-xs px-3 py-1.5 rounded-full border border-ink-muted/20 text-ink-muted hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 transition-all">
+          Avaluar mes
+        </button>`;
+      }
+
+      let extraHtml = '';
+      if (avaluat && !avaluacio.ha_estalviat && (avaluacio.motiu || avaluacio.falta_import)) {
+        extraHtml = `<div class="mt-3 p-3 bg-red-50 rounded-xl border border-red-100 space-y-1">
+          ${avaluacio.falta_import ? `<p class="font-display font-600 text-xs text-red-500">Ha faltat: ${fmt(avaluacio.falta_import)}</p>` : ''}
+          ${avaluacio.motiu ? `<p class="font-body text-xs text-red-600 italic">"${avaluacio.motiu}"</p>` : ''}
+        </div>`;
+      }
+
+      const card = document.createElement('div');
+      card.id = 'card-' + p.id;
+      card.className = 'bento-card p-6';
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <div class="flex-1 min-w-0">
+            <h3 class="font-display font-700 text-base text-ink">${titol}</h3>
+            <p class="font-body text-xs text-ink-muted mt-0.5">Desat el ${data}</p>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            ${badgeHtml}
+            <div id="del-${p.id}" class="relative">
+              <button onclick="iniciarEliminar('${p.id}')"
+                class="p-2 text-ink-muted/40 hover:text-red-400 hover:bg-red-50 rounded-xl transition-all"
+                title="Eliminar pressupost">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-brand-50/60 rounded-xl p-3 text-center">
+            <p class="font-body text-xs text-ink-muted mb-1">Ingressos</p>
+            <p class="font-display font-700 text-sm text-brand-600">${fmt(p.ingressos)}</p>
+          </div>
+          <div class="bg-red-50/60 rounded-xl p-3 text-center">
+            <p class="font-body text-xs text-ink-muted mb-1">Despeses</p>
+            <p class="font-display font-700 text-sm text-red-500">${fmt(p.total_despeses)}</p>
+          </div>
+          <div class="rounded-xl p-3 text-center ${p.balanc >= 0 ? 'bg-emerald-50/60' : 'bg-red-50/60'}">
+            <p class="font-body text-xs text-ink-muted mb-1">Balanç</p>
+            <p class="font-display font-700 text-sm ${p.balanc >= 0 ? 'text-emerald-600' : 'text-red-500'}">${fmt(p.balanc)}</p>
+          </div>
+        </div>
+        ${p.meta_estalvi > 0 ? `<div class="mt-3 pt-3 border-t border-ink-muted/10 flex justify-between items-center">
+          <span class="font-body text-xs text-ink-muted">Meta d'estalvi</span>
+          <span class="font-display font-600 text-xs text-violet-600">${fmt(p.meta_estalvi)}</span>
+        </div>` : ''}
+        ${extraHtml}
+      `;
+      return card;
+    }
+
+
+    function iniciarEliminar(id) {
+      const container = document.getElementById('del-' + id);
+      if (!container) return;
+      container.innerHTML = `
+        <div class="flex items-center gap-1 bg-red-50 border border-red-200 rounded-xl px-2 py-1">
+          <span class="font-body text-xs text-red-500">Eliminar?</span>
+          <button onclick="confirmarEliminar('${id}')" class="font-display font-700 text-xs text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded-lg transition-colors">Sí</button>
+          <button onclick="cancelarEliminar('${id}')" class="font-display font-600 text-xs text-ink-muted hover:text-ink px-1 py-0.5 rounded-lg transition-colors">No</button>
+        </div>`;
+    }
+
+    function cancelarEliminar(id) {
+      const container = document.getElementById('del-' + id);
+      if (!container) return;
+      container.innerHTML = `
+        <button onclick="iniciarEliminar('${id}')"
+          class="p-2 text-ink-muted/40 hover:text-red-400 hover:bg-red-50 rounded-xl transition-all"
+          title="Eliminar pressupost">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>`;
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function confirmarEliminar(id) {
+      try {
+        await dbDeletePressupost(id);
+        const card = document.getElementById('card-' + id);
+        if (card) card.remove();
+        const list = document.getElementById('historial-list');
+        if (list && !list.children.length) {
+          list.classList.add('hidden');
+          document.getElementById('historial-empty')?.classList.remove('hidden');
+        }
+        showGlobalToast('Pressupost eliminat.');
+      } catch (err) {
+        showGlobalToast('Error en eliminar: ' + err.message, true);
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    //  MÒDUL MODAL AVALUACIÓ
+    // ══════════════════════════════════════════════
+
+    let _avaluacioPressupostId = null;
+    let _avaluacioSeleccio     = null;
+
+    function obrirModalAvaluacio(pressupostId, nom) {
+      _avaluacioPressupostId = pressupostId;
+      _avaluacioSeleccio     = null;
+      const nomEl = document.getElementById('modal-avaluacio-nom');
+      if (nomEl) nomEl.textContent = nom;
+      document.getElementById('avaluacio-extra')?.classList.add('hidden');
+      document.getElementById('falta-import') && (document.getElementById('falta-import').value = '');
+      document.getElementById('motiu-text')   && (document.getElementById('motiu-text').value   = '');
+      ['btn-avaluacio-si','btn-avaluacio-no'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) b.className = 'flex-1 font-display font-600 text-sm py-3 rounded-2xl border-2 border-ink-muted/20 text-ink-muted transition-all';
+      });
+      document.getElementById('btn-guardar-avaluacio').disabled = true;
+      const modal = document.getElementById('modal-avaluacio');
+      if (modal) { modal.classList.remove('hidden'); if (window.lucide) lucide.createIcons(); }
+    }
+
+    function tancarModalAvaluacio() {
+      const modal = document.getElementById('modal-avaluacio');
+      if (modal) modal.classList.add('hidden');
+      _avaluacioPressupostId = null;
+      _avaluacioSeleccio     = null;
+    }
+
+    function seleccionarEstalvi(valor) {
+      _avaluacioSeleccio = valor;
+      const btnSi = document.getElementById('btn-avaluacio-si');
+      const btnNo = document.getElementById('btn-avaluacio-no');
+      const extra = document.getElementById('avaluacio-extra');
+      const btnGuardar = document.getElementById('btn-guardar-avaluacio');
+
+      if (valor) {
+        btnSi.className = 'flex-1 font-display font-600 text-sm py-3 rounded-2xl border-2 border-brand-400 bg-brand-50 text-brand-600 transition-all';
+        btnNo.className = 'flex-1 font-display font-600 text-sm py-3 rounded-2xl border-2 border-ink-muted/20 text-ink-muted transition-all';
+        extra && extra.classList.add('hidden');
+      } else {
+        btnNo.className = 'flex-1 font-display font-600 text-sm py-3 rounded-2xl border-2 border-red-300 bg-red-50 text-red-500 transition-all';
+        btnSi.className = 'flex-1 font-display font-600 text-sm py-3 rounded-2xl border-2 border-ink-muted/20 text-ink-muted transition-all';
+        extra && extra.classList.remove('hidden');
+      }
+      if (btnGuardar) btnGuardar.disabled = false;
+    }
+
+    async function guardarAvaluacio() {
+      if (_avaluacioSeleccio === null || !_avaluacioPressupostId) return;
+      const faltaImport = parseFloat(document.getElementById('falta-import')?.value) || null;
+      const motiu       = document.getElementById('motiu-text')?.value.trim() || null;
+      const btn = document.getElementById('btn-guardar-avaluacio');
+      if (btn) { btn.disabled = true; btn.textContent = 'Guardant...'; }
+      try {
+        await dbSaveAvaluacio({ pressupostId: _avaluacioPressupostId, haEstalviat: _avaluacioSeleccio, faltaImport, motiu });
+        tancarModalAvaluacio();
+        showGlobalToast('Avaluació guardada correctament!');
+        initHistorial();
+      } catch (err) {
+        showGlobalToast('Error en guardar: ' + err.message, true);
+        if (btn) { btn.disabled = false; btn.textContent = 'Guardar avaluació'; }
+      }
+    }
+
+
+    // ══════════════════════════════════════════════
+    //  MÒDUL COMPTE
+    // ══════════════════════════════════════════════
+
+    async function initCompte() {
+      const elNoAuth  = document.getElementById('compte-no-auth');
+      const elContent = document.getElementById('compte-content');
+      if (!elContent) return;
+
+      const user = await dbGetUser();
+      if (!user) {
+        elNoAuth  && elNoAuth.classList.remove('hidden');
+        elContent && elContent.classList.add('hidden');
+        return;
+      }
+      elNoAuth  && elNoAuth.classList.add('hidden');
+      elContent && elContent.classList.remove('hidden');
+
+      const name    = user.user_metadata?.full_name || '';
+      const email   = user.email || '';
+      const initials = (name || email).charAt(0).toUpperCase();
+
+      const el = id => document.getElementById(id);
+      if (el('compte-initials')) el('compte-initials').textContent = initials;
+      if (el('compte-name'))     el('compte-name').textContent     = name || '(sense nom)';
+      if (el('compte-email'))    el('compte-email').textContent    = email;
+      if (el('compte-new-name')) el('compte-new-name').value       = name;
+
+      try {
+        const stats = await dbGetStats();
+        if (el('stat-total'))        el('stat-total').textContent        = stats.total;
+        if (el('stat-avg-balanc'))   el('stat-avg-balanc').textContent   = fmt(stats.avgBalanc);
+        if (el('stat-avg-estalvi'))  el('stat-avg-estalvi').textContent  = fmt(stats.avgEstalvi);
+        if (el('stat-avaluacions'))  el('stat-avaluacions').textContent  = stats.totalAvaluacions;
+      } catch {}
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function carregarStatsPublics() {
+      try {
+        const s = await dbGetPublicStats();
+        const elU = document.getElementById('stat-inici-usuaris');
+        const elE = document.getElementById('stat-inici-estalvi');
+        const elS = document.getElementById('stat-inici-satisfaccio');
+        if (elU) elU.textContent = s.total_users > 0 ? s.total_users + '+' : '0';
+        if (elE) elE.textContent = s.avg_estalvi > 0 ? '€' + Math.round(s.avg_estalvi) : '—';
+        if (elS) elS.textContent = s.pct_satisfaccio > 0 ? s.pct_satisfaccio + '%' : '—';
+      } catch {}
+    }
+
+    async function canviarNom() {
+      const newName = document.getElementById('compte-new-name')?.value.trim();
+      if (!newName) { showGlobalToast('El nom no pot estar buit.', true); return; }
+      try {
+        await dbUpdateUserName(newName);
+        showGlobalToast('Nom actualitzat correctament!');
+        initCompte();
+        const session = await dbGetSession();
+        if (session) updateAuthUI(session.user.email, newName);
+      } catch (err) {
+        showGlobalToast('Error: ' + err.message, true);
+      }
+    }
+
