@@ -1,0 +1,105 @@
+<!-- ─────────────────────────────────────────────
+     VISTA: EL MEU HISTORIAL
+───────────────────────────────────────────── -->
+<section id="view-historial" class="view">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-20">
+
+    <div class="mb-10">
+      <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mt-4 mb-3">El meu Historial</h1>
+      <p class="font-body text-lg text-ink-muted">Tots els pressupostos guardats, del més recent al més antic.</p>
+    </div>
+
+    <!-- No auth -->
+    <div id="historial-no-auth" class="hidden text-center py-20">
+      <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="lock" class="w-8 h-8 text-amber-400"></i>
+      </div>
+      <h3 class="font-display font-700 text-xl text-ink mb-2">Cal iniciar sessió</h3>
+      <p class="font-body text-sm text-ink-muted mb-6">Inicia sessió per veure el teu historial de pressupostos guardats.</p>
+      <button onclick="showView('login')"
+        class="font-display font-700 text-sm text-white bg-brand-500 hover:bg-brand-600 px-6 py-3 rounded-full transition-colors">
+        Iniciar sessió
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div id="historial-loading" class="hidden text-center py-20">
+      <div class="w-10 h-10 border-4 border-brand-200 border-t-brand-500 rounded-full animate-spin mx-auto"></div>
+      <p class="font-body text-sm text-ink-muted mt-4">Carregant historial...</p>
+    </div>
+
+    <!-- Empty -->
+    <div id="historial-empty" class="hidden text-center py-20">
+      <div class="w-16 h-16 bg-brand-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="inbox" class="w-8 h-8 text-brand-400"></i>
+      </div>
+      <h3 class="font-display font-700 text-xl text-ink mb-2">Encara no tens cap pressupost guardat</h3>
+      <p class="font-body text-sm text-ink-muted mb-6">Calcula el teu primer pressupost i desa'l per veure'l aquí.</p>
+      <button onclick="showView('pressupost')"
+        class="font-display font-700 text-sm text-white bg-brand-500 hover:bg-brand-600 px-6 py-3 rounded-full transition-colors">
+        Crear pressupost
+      </button>
+    </div>
+
+    <!-- List -->
+    <div id="historial-list" class="hidden space-y-4"></div>
+
+  </div>
+
+  <!-- ── MODAL: Avaluació del mes ───────────────────────────────── -->
+  <div id="modal-avaluacio" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="tancarModalAvaluacio()"></div>
+    <div class="relative bg-white rounded-3xl shadow-xl w-full max-w-md p-8 max-h-[90vh] overflow-y-auto">
+
+      <button onclick="tancarModalAvaluacio()"
+        class="absolute top-4 right-4 p-2 text-ink-muted hover:text-ink hover:bg-gray-100 rounded-xl transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="mb-6">
+        <div class="w-12 h-12 bg-brand-50 rounded-2xl flex items-center justify-center mb-4">
+          <i data-lucide="clipboard-check" class="w-6 h-6 text-brand-500"></i>
+        </div>
+        <h2 class="font-display font-700 text-xl text-ink mb-1">Avaluació del mes</h2>
+        <p id="modal-avaluacio-nom" class="font-body text-sm text-ink-muted"></p>
+      </div>
+
+      <div class="mb-6">
+        <p class="font-display font-600 text-base text-ink mb-4">Has pogut estalviar el que pretenies?</p>
+        <div class="flex gap-3">
+          <button id="btn-avaluacio-si" onclick="seleccionarEstalvi(true)"
+            class="flex-1 font-display font-600 text-sm py-3 rounded-2xl border-2 border-ink-muted/20 text-ink-muted transition-all">
+            Sí ✓
+          </button>
+          <button id="btn-avaluacio-no" onclick="seleccionarEstalvi(false)"
+            class="flex-1 font-display font-600 text-sm py-3 rounded-2xl border-2 border-ink-muted/20 text-ink-muted transition-all">
+            No ✗
+          </button>
+        </div>
+      </div>
+
+      <!-- Camps extra quan diu No -->
+      <div id="avaluacio-extra" class="hidden space-y-4 mb-6">
+        <div>
+          <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide block mb-1.5">Quant t'ha faltat? (€)</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">€</span>
+            <input type="number" id="falta-import" min="0" step="0.01" placeholder="0,00"
+              class="w-full h-12 rounded-xl border-2 border-red-200 bg-red-50/30 pl-9 pr-4 font-body text-sm text-ink placeholder-red-300 focus:outline-none focus:border-red-400 focus:bg-white transition-colors" />
+          </div>
+        </div>
+        <div>
+          <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide block mb-1.5">Per quin motiu?</label>
+          <textarea id="motiu-text" rows="3"
+            placeholder="Explica breument per què no has pogut assolir l'objectiu d'estalvi..."
+            class="w-full rounded-xl border-2 border-red-200 bg-red-50/30 px-4 py-3 font-body text-sm text-ink placeholder-red-300 focus:outline-none focus:border-red-400 focus:bg-white transition-colors resize-none"></textarea>
+        </div>
+      </div>
+
+      <button onclick="guardarAvaluacio()" id="btn-guardar-avaluacio" disabled
+        class="w-full h-12 font-display font-700 text-sm text-white bg-brand-500 hover:bg-brand-600 rounded-full shadow-glow-green transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100">
+        Guardar avaluació
+      </button>
+    </div>
+  </div>
+</section>

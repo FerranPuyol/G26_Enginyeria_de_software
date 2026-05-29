@@ -1,6 +1,6 @@
 // SmartPrice Comparator — Service Worker
 // Versió de la caché — canvia aquest número per forçar l'actualització
-const CACHE_NAME = 'smartprice-v1';
+const CACHE_NAME = 'smartprice-v2';
 
 // Fitxers que es guarden per funcionar offline
 const ASSETS_TO_CACHE = [

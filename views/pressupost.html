@@ -94,11 +94,10 @@
           <i data-lucide="calculator" class="w-4 h-4"></i>
           Calcular pressupost
         </button>
-        <button onclick="mostrarToastGuardar()"
-          class="h-12 px-5 rounded-full border border-ink-muted/20 hover:border-brand-400 font-display font-600 text-sm text-ink-muted hover:text-brand-600 transition-all flex items-center justify-center gap-2"
-          title="Pròximament disponible">
+        <button onclick="obrirModalDesar()"
+          class="h-12 px-5 rounded-full border border-brand-300 hover:border-brand-500 bg-brand-50 hover:bg-brand-100 font-display font-600 text-sm text-brand-600 hover:text-brand-700 transition-all flex items-center justify-center gap-2">
           <i data-lucide="cloud-upload" class="w-4 h-4"></i>
-          Guardar
+          Desar
         </button>
         <button onclick="netejarPressupost()"
           class="h-12 px-5 rounded-full border border-ink-muted/20 hover:border-red-300 font-display font-600 text-sm text-ink-muted hover:text-red-500 transition-all flex items-center justify-center gap-2">
@@ -107,12 +106,11 @@
         </button>
       </div>
 
-      <!-- Toast "pròximament" -->
+      <!-- Toast confirmar desat -->
       <div id="toast-guardar"
         class="hidden items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-3">
-        <i data-lucide="info" class="w-4 h-4 text-brand-500 flex-shrink-0"></i>
-        <p class="font-body text-sm text-brand-700">La funcionalitat de guardar estarà disponible pròximament. El
-          pressupost es manté mentre no tanquis la pàgina.</p>
+        <i data-lucide="check-circle" class="w-4 h-4 text-brand-500 flex-shrink-0"></i>
+        <p class="font-body text-sm text-brand-700">Pressupost desat correctament a la base de dades!</p>
       </div>
 
     </div>
@@ -196,5 +194,73 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- ── MODAL: Desar pressupost ───────────────────────────────── -->
+  <div id="modal-desar" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="tancarModalDesar()"></div>
+    <div class="relative bg-white rounded-3xl shadow-xl w-full max-w-md p-8">
+
+      <button onclick="tancarModalDesar()"
+        class="absolute top-4 right-4 p-2 text-ink-muted hover:text-ink hover:bg-gray-100 rounded-xl transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="mb-6">
+        <div class="w-12 h-12 bg-brand-50 rounded-2xl flex items-center justify-center mb-4">
+          <i data-lucide="cloud-upload" class="w-6 h-6 text-brand-500"></i>
+        </div>
+        <h2 class="font-display font-700 text-xl text-ink mb-1">Desar pressupost</h2>
+        <p class="font-body text-sm text-ink-muted">Tria el període i, opcionalment, posa-li un nom.</p>
+      </div>
+
+      <div class="space-y-4 mb-6">
+
+        <!-- Mes i any en una fila -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide block mb-1.5">Mes</label>
+            <select id="desar-mes"
+              class="w-full h-11 rounded-xl border-2 border-ink-muted/20 px-3 font-body text-sm text-ink focus:outline-none focus:border-brand-400 bg-white transition-colors">
+              <option value="1">Gener</option>
+              <option value="2">Febrer</option>
+              <option value="3">Març</option>
+              <option value="4">Abril</option>
+              <option value="5">Maig</option>
+              <option value="6">Juny</option>
+              <option value="7">Juliol</option>
+              <option value="8">Agost</option>
+              <option value="9">Setembre</option>
+              <option value="10">Octubre</option>
+              <option value="11">Novembre</option>
+              <option value="12">Desembre</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide block mb-1.5">Any</label>
+            <select id="desar-any"
+              class="w-full h-11 rounded-xl border-2 border-ink-muted/20 px-3 font-body text-sm text-ink focus:outline-none focus:border-brand-400 bg-white transition-colors">
+            </select>
+          </div>
+        </div>
+
+        <!-- Nom opcional -->
+        <div>
+          <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide block mb-1.5">
+            Nom <span class="normal-case text-ink-muted/50">(opcional)</span>
+          </label>
+          <input type="text" id="desar-nom" maxlength="50" placeholder="ex: Pressupost d'estiu, Abril stricte..."
+            class="w-full h-11 rounded-xl border-2 border-ink-muted/20 px-4 font-body text-sm text-ink placeholder-ink-muted/40 focus:outline-none focus:border-brand-400 transition-colors" />
+        </div>
+
+      </div>
+
+      <button onclick="confirmarDesar()" id="btn-confirmar-desar"
+        class="w-full h-12 font-display font-700 text-sm text-white bg-brand-500 hover:bg-brand-600 rounded-full shadow-glow-green transition-all hover:scale-[1.02]">
+        <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+        Desar a la base de dades
+      </button>
+
+    </div>
   </div>
 </section>

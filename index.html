@@ -66,6 +66,9 @@
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Supabase CDN (base de dades) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
   <!-- PWA: Manifest + Service Worker -->
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#16a34a" />
@@ -111,9 +114,11 @@
         <!-- Desktop nav links -->
         <div class="hidden md:flex items-center gap-1">
           <button class="nav-link active" id="nav-inici" onclick="showView('inici')">Inici</button>
-          <button class="nav-link" id="nav-pressupost" onclick="showView('pressupost')">El meu Pressupost</button>
+          <button class="nav-link" id="nav-pressupost" onclick="showView('pressupost')">Pressupost</button>
+          <button class="nav-link" id="nav-historial" onclick="showView('historial')">Historial</button>
           <button class="nav-link" id="nav-comparador" onclick="showView('comparador')">Comparador</button>
           <button class="nav-link" id="nav-assessor" onclick="showView('assessor')">Assessor IA</button>
+          <button class="nav-link" id="nav-compte" onclick="showView('compte')">El meu Compte</button>
         </div>
 
         <!-- CTA desktop -->
@@ -141,12 +146,16 @@
       <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1">
         <button class="nav-link text-left w-full active" id="mnav-inici"
           onclick="showView('inici');toggleMenu()">Inici</button>
-        <button class="nav-link text-left w-full" id="mnav-pressupost" onclick="showView('pressupost');toggleMenu()">El
-          meu Pressupost</button>
+        <button class="nav-link text-left w-full" id="mnav-pressupost"
+          onclick="showView('pressupost');toggleMenu()">Pressupost</button>
+        <button class="nav-link text-left w-full" id="mnav-historial"
+          onclick="showView('historial');toggleMenu()">Historial</button>
         <button class="nav-link text-left w-full" id="mnav-comparador"
           onclick="showView('comparador');toggleMenu()">Comparador</button>
         <button class="nav-link text-left w-full" id="mnav-assessor"
           onclick="showView('assessor');toggleMenu()">Assessor IA</button>
+        <button class="nav-link text-left w-full" id="mnav-compte"
+          onclick="showView('compte');toggleMenu()">El meu Compte</button>
         <div class="flex gap-2 pt-2 pb-1" id="auth-mobile">
           <button onclick="showView('login');toggleMenu()"
             class="flex-1 font-display font-600 text-sm text-ink-muted border border-ink-muted/20 rounded-full py-2 hover:border-brand-400 transition-colors">Entrar</button>
@@ -202,7 +211,7 @@
   <script>
     // Carrega totes les vistes des dels arxius HTML externs i les injecta al main
     async function loadViews() {
-      const viewFiles = ['inici', 'pressupost', 'comparador', 'assessor', 'login', 'register'];
+      const viewFiles = ['inici', 'pressupost', 'comparador', 'assessor', 'login', 'register', 'historial', 'compte'];
       const main = document.getElementById('main-content');
       for (const view of viewFiles) {
         try {
@@ -217,7 +226,8 @@
       if (window.lucide) lucide.createIcons();
       initDespesesPerDefecte();
       initComparador();
-      checkSession();
+      await checkSession();
+      carregarStatsPublics();
     }
 
     // Iniciem la càrrega de vistes quan el DOM estigui llest
@@ -225,8 +235,9 @@
   </script>
 
   <!-- ══════════════════════════════════════════════
-       JAVASCRIPT PRINCIPAL
+       BASE DE DADES (Supabase) + JAVASCRIPT PRINCIPAL
   ════════════════════════════════════════════════ -->
+  <script src="js/database.js"></script>
   <script src="js/app.js"></script>
 
 </body>
