@@ -115,6 +115,7 @@
         <div class="hidden md:flex items-center gap-1">
           <button class="nav-link active" id="nav-inici" onclick="showView('inici')">Inici</button>
           <button class="nav-link" id="nav-pressupost" onclick="showView('pressupost')">Pressupost</button>
+          <button class="nav-link" id="nav-metes" onclick="showView('metes')">Metes</button>
           <button class="nav-link" id="nav-historial" onclick="showView('historial')">Historial</button>
           <button class="nav-link" id="nav-comparador" onclick="showView('comparador')">Comparador</button>
           <button class="nav-link" id="nav-assessor" onclick="showView('assessor')">Assessor IA</button>
@@ -148,6 +149,8 @@
           onclick="showView('inici');toggleMenu()">Inici</button>
         <button class="nav-link text-left w-full" id="mnav-pressupost"
           onclick="showView('pressupost');toggleMenu()">Pressupost</button>
+        <button class="nav-link text-left w-full" id="mnav-metes"
+          onclick="showView('metes');toggleMenu()">Metes</button>
         <button class="nav-link text-left w-full" id="mnav-historial"
           onclick="showView('historial');toggleMenu()">Historial</button>
         <button class="nav-link text-left w-full" id="mnav-comparador"
@@ -211,7 +214,7 @@
   <script>
     // Carrega totes les vistes des dels arxius HTML externs i les injecta al main
     async function loadViews() {
-      const viewFiles = ['inici', 'pressupost', 'comparador', 'assessor', 'login', 'register', 'historial', 'compte'];
+      const viewFiles = ['inici', 'pressupost', 'metes', 'comparador', 'assessor', 'login', 'register', 'historial', 'compte'];
       const main = document.getElementById('main-content');
       for (const view of viewFiles) {
         try {

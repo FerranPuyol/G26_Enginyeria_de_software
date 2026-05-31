@@ -1,8 +1,8 @@
 // ── View routing ──────────────────────────────
-    const views = ['inici', 'pressupost', 'comparador', 'assessor', 'login', 'register', 'historial', 'compte'];
-    const navIds = ['inici', 'pressupost', 'comparador', 'assessor', 'historial', 'compte'];
-    const navDesktop = { inici: 'nav-inici', pressupost: 'nav-pressupost', comparador: 'nav-comparador', assessor: 'nav-assessor', historial: 'nav-historial', compte: 'nav-compte' };
-    const navMobile  = { inici: 'mnav-inici', pressupost: 'mnav-pressupost', comparador: 'mnav-comparador', assessor: 'mnav-assessor', historial: 'mnav-historial', compte: 'mnav-compte' };
+    const views = ['inici', 'pressupost', 'metes', 'comparador', 'assessor', 'login', 'register', 'historial', 'compte'];
+    const navIds = ['inici', 'pressupost', 'metes', 'comparador', 'assessor', 'historial', 'compte'];
+    const navDesktop = { inici: 'nav-inici', pressupost: 'nav-pressupost', metes: 'nav-metes', comparador: 'nav-comparador', assessor: 'nav-assessor', historial: 'nav-historial', compte: 'nav-compte' };
+    const navMobile  = { inici: 'mnav-inici', pressupost: 'mnav-pressupost', metes: 'mnav-metes', comparador: 'mnav-comparador', assessor: 'mnav-assessor', historial: 'mnav-historial', compte: 'mnav-compte' };
 
     function showView(name) {
       views.forEach(v => {
@@ -20,6 +20,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (name === 'historial') initHistorial();
       if (name === 'compte')   initCompte();
+      if (name === 'metes')    initMetes();
     }
 
     // ── Mobile hamburger ──────────────────────────
@@ -2357,3 +2358,138 @@
       }
     }
 
+
+    // ══════════════════════════════════════════════
+    //  MÒDUL METES (PROJECTES DE FUTUR)
+    // ══════════════════════════════════════════════
+    
+    let metesDades = JSON.parse(localStorage.getItem('smartprice_metes') || '[]');
+    let ritmeEstalviMensual = 0;
+
+    async function initMetes() {
+      // Intentar obtenir el ritme d'estalvi de la BD
+      try {
+        const lastP = await dbGetLastPressupost();
+        if (lastP && lastP.meta_estalvi > 0) {
+          ritmeEstalviMensual = lastP.meta_estalvi;
+        } else {
+          // Si no, agafar-ho del DOM actual si existeix
+          const metaDom = parseFloat(document.getElementById('meta-estalvi').value);
+          ritmeEstalviMensual = !isNaN(metaDom) && metaDom > 0 ? metaDom : 0;
+        }
+      } catch(e) {
+        const metaDom = parseFloat(document.getElementById('meta-estalvi').value);
+        ritmeEstalviMensual = !isNaN(metaDom) && metaDom > 0 ? metaDom : 0;
+      }
+      
+      document.getElementById('metes-ritme-estalvi').textContent = fmt(ritmeEstalviMensual).replace(' €','');
+      renderMetes();
+    }
+
+    function afegirNovaMeta() {
+      const nomInput = document.getElementById('meta-nom');
+      const costInput = document.getElementById('meta-cost');
+      const actualInput = document.getElementById('meta-actual');
+      
+      const nom = nomInput.value.trim();
+      const cost = parseFloat(costInput.value);
+      const actual = parseFloat(actualInput.value) || 0;
+      
+      if (!nom || isNaN(cost) || cost <= 0) {
+        showGlobalToast("Has d'indicar un nom i un cost total vàlid", true);
+        return;
+      }
+      if (actual < 0 || actual > cost) {
+        showGlobalToast("L'import estalviat no pot ser negatiu ni superior al cost total", true);
+        return;
+      }
+      
+      metesDades.push({
+        id: Date.now(),
+        nom,
+        cost,
+        actual
+      });
+      
+      localStorage.setItem('smartprice_metes', JSON.stringify(metesDades));
+      
+      nomInput.value = '';
+      costInput.value = '';
+      actualInput.value = '0';
+      
+      showGlobalToast(`S'ha afegit "${nom}" a les teves metes`);
+      renderMetes();
+    }
+
+    function eliminarMeta(id) {
+      metesDades = metesDades.filter(m => m.id !== id);
+      localStorage.setItem('smartprice_metes', JSON.stringify(metesDades));
+      renderMetes();
+    }
+
+    function renderMetes() {
+      const container = document.getElementById('metes-llista');
+      
+      if (metesDades.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 border-2 border-dashed border-ink-muted/20 rounded-2xl">
+            <div class="w-12 h-12 bg-surface rounded-xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="star" class="w-6 h-6 text-ink-muted/40"></i>
+            </div>
+            <p class="font-body text-sm text-ink-muted">Encara no has afegit cap meta.</p>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+      
+      container.innerHTML = '';
+      
+      metesDades.forEach(meta => {
+        const pct = Math.min(Math.round((meta.actual / meta.cost) * 100), 100);
+        const falta = meta.cost - meta.actual;
+        
+        let previsioMsg = '';
+        if (falta <= 0) {
+          previsioMsg = `<span class="text-brand-600 font-700">Has assolit aquesta meta! 🎉</span>`;
+        } else if (ritmeEstalviMensual > 0) {
+          const mesos = Math.ceil(falta / ritmeEstalviMensual);
+          const dataAconseguit = new Date();
+          dataAconseguit.setMonth(dataAconseguit.getMonth() + mesos);
+          const opcionsData = { month: 'long', year: 'numeric' };
+          previsioMsg = `Et falten <b>${mesos} mesos</b>. Ho aconseguiràs el <b>${dataAconseguit.toLocaleDateString('ca-ES', opcionsData)}</b>`;
+        } else {
+          previsioMsg = `<span class="text-amber-600">Configura el teu pressupost per veure quan ho aconseguiràs</span>`;
+        }
+        
+        const card = document.createElement('div');
+        card.className = "bg-white border border-ink-muted/10 rounded-2xl p-5 shadow-sm";
+        card.innerHTML = `
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="font-display font-700 text-lg text-ink">${escapeHtml(meta.nom)}</h3>
+              <p class="font-body text-xs text-ink-muted mt-1">${previsioMsg}</p>
+            </div>
+            <button onclick="eliminarMeta(${meta.id})" class="p-2 text-ink-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+          
+          <div class="space-y-2">
+            <div class="flex justify-between font-body text-sm">
+              <span class="text-ink-muted">Estalviat: <span class="font-600 text-ink">${fmt(meta.actual)}</span></span>
+              <span class="text-ink-muted">Objectiu: <span class="font-600 text-ink">${fmt(meta.cost)}</span></span>
+            </div>
+            <div class="w-full bg-surface rounded-full h-3 overflow-hidden">
+              <div class="bg-brand-500 h-3 rounded-full transition-all duration-1000 ease-out" style="width: ${pct}%"></div>
+            </div>
+            <div class="text-right">
+              <span class="font-display font-700 text-xs text-brand-600">${pct}% completat</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      
+      if (window.lucide) lucide.createIcons();
+    }

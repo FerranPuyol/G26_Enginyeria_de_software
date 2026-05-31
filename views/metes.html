@@ -1,0 +1,83 @@
+<!-- ─────────────────────────────────────────────
+     VISTA: METES I LLISTA DE DESITJOS
+───────────────────────────────────────────── -->
+<section id="view-metes" class="view hidden">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-20">
+
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-sm font-display font-700 mb-4">
+        <i data-lucide="target" class="w-4 h-4"></i> Projectes de Futur
+      </div>
+      <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mb-3">Les teves Metes</h1>
+      <p class="font-body text-lg text-ink-muted">Estableix objectius a llarg termini i descobreix quant trigaràs a fer-los realitat.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Formulari Afegir Meta -->
+      <div class="lg:col-span-1">
+        <div class="bento-card p-6 sticky top-24">
+          <h2 class="font-display font-700 text-xl text-ink mb-5">Nova Meta</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide block mb-1.5">Què vols aconseguir?</label>
+              <input type="text" id="meta-nom" placeholder="Ex: Viatge al Japó, PS5..."
+                class="w-full h-11 rounded-xl border-2 border-ink-muted/20 px-4 font-body text-sm text-ink placeholder-ink-muted/40 focus:outline-none focus:border-brand-400 transition-colors" />
+            </div>
+            
+            <div>
+              <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide block mb-1.5">Cost total estimat</label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">&euro;</span>
+                <input type="number" id="meta-cost" min="0" step="any" placeholder="1500"
+                  class="w-full h-11 rounded-xl border-2 border-ink-muted/20 pl-9 pr-4 font-body text-sm text-ink placeholder-ink-muted/40 focus:outline-none focus:border-brand-400 transition-colors" />
+              </div>
+            </div>
+
+            <div>
+              <label class="font-body text-xs font-500 text-ink-muted uppercase tracking-wide block mb-1.5">Diners ja estalviats</label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">&euro;</span>
+                <input type="number" id="meta-actual" min="0" step="any" placeholder="0" value="0"
+                  class="w-full h-11 rounded-xl border-2 border-ink-muted/20 pl-9 pr-4 font-body text-sm text-ink placeholder-ink-muted/40 focus:outline-none focus:border-brand-400 transition-colors" />
+              </div>
+            </div>
+
+            <button onclick="afegirNovaMeta()"
+              class="w-full h-12 mt-2 font-display font-700 text-sm text-white bg-ink hover:bg-ink-soft rounded-full transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
+              <i data-lucide="plus" class="w-4 h-4"></i> Crear objectiu
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Llista de Metes -->
+      <div class="lg:col-span-2 space-y-4">
+        
+        <!-- Info del pressupost base -->
+        <div class="bg-brand-50 border border-brand-200 rounded-2xl p-4 flex items-center gap-4 mb-2">
+          <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i data-lucide="calculator" class="w-5 h-5 text-brand-500"></i>
+          </div>
+          <div>
+            <p class="font-body text-sm text-ink-muted">Ritme d'estalvi actual segons el teu pressupost:</p>
+            <p class="font-display font-700 text-brand-700"><span id="metes-ritme-estalvi">0,00</span> €/mes</p>
+          </div>
+        </div>
+
+        <div id="metes-llista" class="space-y-4">
+          <!-- Es generarà via JS -->
+          <div class="text-center py-12 border-2 border-dashed border-ink-muted/20 rounded-2xl">
+            <div class="w-12 h-12 bg-surface rounded-xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="star" class="w-6 h-6 text-ink-muted/40"></i>
+            </div>
+            <p class="font-body text-sm text-ink-muted">Encara no has afegit cap meta.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
