@@ -2640,7 +2640,7 @@
         return d.toLocaleDateString('ca-ES', { month: 'short', day: 'numeric' });
       });
       
-      const dataIngressos = history.map(h => h.ingressos_totals || 0);
+      const dataIngressos = history.map(h => h.ingressos || 0);
       const dataDespeses = history.map(h => h.total_despeses || 0);
 
       chartEvolucioInstancia = new Chart(ctx, {
