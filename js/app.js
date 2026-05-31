@@ -1980,32 +1980,18 @@
     }
 
     async function logout() {
-      try { await dbLogout(); } catch (err) { console.error('Error tancant sessió:', err); }
+      try { 
+        await dbLogout(); 
+      } catch (err) { 
+        console.error('Error tancant sessió:', err); 
+      }
 
-      const authDesktop = document.getElementById('auth-desktop');
-      const authMobile  = document.getElementById('auth-mobile');
-
-      const loggedOutDesktop = `
-        <button onclick="showView('login')"
-          class="font-display font-600 text-sm text-ink-muted hover:text-ink transition-colors px-3 py-1.5">Entrar</button>
-        <button onclick="showView('register')"
-          class="font-display font-700 text-sm text-white bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded-full shadow-glow-green transition-all hover:scale-105">
-          Registra't gratis
-        </button>
-      `;
-
-      const loggedOutMobile = `
-        <button onclick="showView('login');toggleMenu()"
-          class="flex-1 font-display font-600 text-sm text-ink-muted border border-ink-muted/20 rounded-full py-2 hover:border-brand-400 transition-colors">Entrar</button>
-        <button onclick="showView('register');toggleMenu()"
-          class="flex-1 font-display font-700 text-sm text-white bg-brand-500 rounded-full py-2 hover:bg-brand-600 transition-colors">Registra't</button>
-      `;
-
-      if (authDesktop) authDesktop.innerHTML = loggedOutDesktop;
-      if (authMobile)  authMobile.innerHTML  = loggedOutMobile;
-
-      showGlobalToast("Has tancat la sessió.");
-      showView('inici');
+      // Esborrar la memòria cau local perquè no quedi informació de l'usuari
+      localStorage.removeItem('smartprice_pressupost');
+      localStorage.removeItem('smartprice_metes');
+      
+      // Recarregar la pàgina per netejar completament l'aplicació i les variables
+      window.location.reload();
     }
 
 
