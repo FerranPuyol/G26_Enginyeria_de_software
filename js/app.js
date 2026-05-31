@@ -2367,19 +2367,22 @@
     let ritmeEstalviMensual = 0;
 
     async function initMetes() {
-      // Intentar obtenir el ritme d'estalvi de la BD
-      try {
-        const lastP = await dbGetLastPressupost();
-        if (lastP && lastP.meta_estalvi > 0) {
-          ritmeEstalviMensual = lastP.meta_estalvi;
-        } else {
-          // Si no, agafar-ho del DOM actual si existeix
-          const metaDom = parseFloat(document.getElementById('meta-estalvi').value);
-          ritmeEstalviMensual = !isNaN(metaDom) && metaDom > 0 ? metaDom : 0;
+      // 1. Prioritzar el valor actual del DOM (per si l'usuari està fent proves sense desar)
+      const metaDom = parseFloat(document.getElementById('meta-estalvi').value);
+      if (!isNaN(metaDom) && metaDom > 0) {
+        ritmeEstalviMensual = metaDom;
+      } else {
+        // 2. Si el DOM està buit, intentar obtenir l'últim pressupost desat a la BD
+        try {
+          const lastP = await dbGetLastPressupost();
+          if (lastP && lastP.meta_estalvi > 0) {
+            ritmeEstalviMensual = lastP.meta_estalvi;
+          } else {
+            ritmeEstalviMensual = 0;
+          }
+        } catch(e) {
+          ritmeEstalviMensual = 0;
         }
-      } catch(e) {
-        const metaDom = parseFloat(document.getElementById('meta-estalvi').value);
-        ritmeEstalviMensual = !isNaN(metaDom) && metaDom > 0 ? metaDom : 0;
       }
       
       document.getElementById('metes-ritme-estalvi').textContent = fmt(ritmeEstalviMensual).replace(' €','');
