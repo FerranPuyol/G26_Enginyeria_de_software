@@ -101,6 +101,11 @@
           <i data-lucide="trash-2" class="w-4 h-4"></i>
           Netejar
         </button>
+        <button onclick="exportarCSV()"
+          class="h-12 px-5 rounded-full border border-ink-muted/20 hover:border-brand-300 font-display font-600 text-sm text-ink-muted hover:text-brand-600 transition-all flex items-center justify-center gap-2">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          Exportar CSV
+        </button>
       </div>
 
       <!-- Toast confirmar desat -->
@@ -259,5 +264,14 @@
       </button>
 
     </div>
+  </div>
+
+  <!-- Toast desfer eliminació -->
+  <div id="undo-toast"
+    class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 items-center gap-3 rounded-2xl border border-ink-muted/20 bg-white px-5 py-3 shadow-xl">
+    <i data-lucide="trash-2" class="w-4 h-4 text-ink-muted flex-shrink-0"></i>
+    <p class="font-body text-sm text-ink">Despesa eliminada</p>
+    <button onclick="desferEliminacio()"
+      class="font-display font-700 text-sm text-brand-600 hover:text-brand-700 ml-2 transition-colors">Desfer</button>
   </div>
 </section>

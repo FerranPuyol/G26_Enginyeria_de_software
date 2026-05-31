@@ -986,8 +986,30 @@
 
       options.sort((a, b) => a.price - b.price);
 
+      // Integració amb el pressupost actual (Lectura intel·ligent)
+      let contextBudget = '';
+      if (despesesDades.length > 0) {
+        const matchingExpense = despesesDades.find(d => {
+          const nom = (d.nom || '').toLowerCase();
+          return nom.includes(category) || nom.includes(querySubject) || norm(cat.label).includes(nom);
+        });
+        
+        if (matchingExpense) {
+          const importActual = parseFloat(matchingExpense.import);
+          if (!isNaN(importActual)) {
+            const cheaperOptions = options.filter(o => o.price < importActual);
+            if (cheaperOptions.length > 0) {
+              const bestSaving = importActual - cheaperOptions[0].price;
+              contextBudget = `<div class="mt-3 p-3 bg-brand-50 border border-brand-200 rounded-xl text-sm text-brand-800"><i data-lucide="piggy-bank" class="w-4 h-4 inline mr-1 mb-0.5"></i> He vist que actualment pagues <b>${importActual}€</b> per <i>${matchingExpense.nom}</i> al teu pressupost. Si canvies a la opció més econòmica (${cheaperOptions[0].name}), podries <b>estalviar ${bestSaving.toFixed(2)}€ al mes</b>!</div>`;
+            } else {
+              contextBudget = `<div class="mt-3 p-3 bg-brand-50 border border-brand-200 rounded-xl text-sm text-brand-800"><i data-lucide="check-circle" class="w-4 h-4 inline mr-1 mb-0.5"></i> Ja tens l'opció més barata al teu pressupost (pagues ${importActual}€). Bona feina!</div>`;
+            }
+          }
+        }
+      }
+
       const priceStr = maxPrice ? ` per menys de ${maxPrice}€` : '';
-      const summary = `He trobat ${options.length} opció${options.length > 1 ? 's' : ''} de ${cat.label}${priceStr} a Barcelona:`;
+      const summary = `He trobat ${options.length} opció${options.length > 1 ? 's' : ''} de ${cat.label}${priceStr} a Barcelona: ${contextBudget}`;
 
       return { found: true, category: cat.label, maxPrice, summary, options, tip: cat.tip };
     }
@@ -1275,9 +1297,41 @@
       if (inputs.length > 0) inputs[inputs.length - 1].focus();
     }
 
+    let ultimaDespesaEliminada = null;
+    let timerDesfer = null;
+
     function eliminarDespesa(id) {
-      despesesDades = despesesDades.filter(d => d.id !== id);
-      renderDespeses();
+      const idx = despesesDades.findIndex(d => d.id === id);
+      if (idx !== -1) {
+        ultimaDespesaEliminada = { idx, data: despesesDades[idx] };
+        despesesDades.splice(idx, 1);
+        renderDespeses();
+        
+        // Show undo toast
+        const toast = document.getElementById('undo-toast');
+        toast.classList.remove('hidden');
+        toast.classList.add('flex');
+        
+        clearTimeout(timerDesfer);
+        timerDesfer = setTimeout(() => {
+          toast.classList.add('hidden');
+          toast.classList.remove('flex');
+          ultimaDespesaEliminada = null;
+        }, 5000);
+      }
+    }
+
+    function desferEliminacio() {
+      if (ultimaDespesaEliminada) {
+        despesesDades.splice(ultimaDespesaEliminada.idx, 0, ultimaDespesaEliminada.data);
+        ultimaDespesaEliminada = null;
+        renderDespeses();
+        
+        const toast = document.getElementById('undo-toast');
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+        clearTimeout(timerDesfer);
+      }
     }
 
     function validarNegatiu(input, errorId) {
@@ -1582,6 +1636,38 @@
       document.getElementById('balanc-resum').classList.add('hidden');
     }
 
+    function exportarCSV() {
+      const ingressos = document.getElementById('ingressos-nets').value || 0;
+      const meta = document.getElementById('meta-estalvi').value || 0;
+      
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Categoria,Nom,Import\n";
+      csvContent += `Ingressos,Ingressos nets,${ingressos}\n`;
+      csvContent += `Meta,Meta d'estalvi,${meta}\n`;
+      
+      despesesDades.forEach(d => {
+        csvContent += `Despesa,${d.nom || 'Sense nom'},${d.import || 0}\n`;
+      });
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "pressupost_smartprice.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showGlobalToast("Pressupost exportat a CSV");
+    }
+
+    async function handleComencaAra() {
+      const session = await dbGetSession();
+      if (session) {
+        showView('pressupost');
+      } else {
+        showView('register');
+      }
+    }
+
     // ── MÒDUL COMPARADOR ──────────────────────────
     function initComparador() {
       const navContainer = document.getElementById('categories-nav');
@@ -1604,7 +1690,10 @@
       }
     }
 
+    let currentCategoryKey = null;
+
     function selectCategory(key, btnEl) {
+      currentCategoryKey = key;
       // Update active button state
       document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.className = 'cat-btn font-display font-600 text-sm px-4 py-2 rounded-full border transition-all bg-white text-ink-muted border-ink-muted/20 hover:border-ink/50 hover:bg-brand-50 hover:text-brand-700';
@@ -1617,6 +1706,7 @@
       if (!cat) return;
 
       document.getElementById('comparador-results').classList.remove('hidden');
+      document.getElementById('filtre-preu-container').classList.remove('hidden');
       document.getElementById('comparador-cat-title').textContent = cat.label;
 
       const prices = cat.options.map(o => o.price);
@@ -1628,11 +1718,37 @@
       document.getElementById('comparador-avg').textContent = fmt(avg);
       document.getElementById('comparador-max').textContent = fmt(max);
 
+      // Initialize slider
+      const slider = document.getElementById('comparador-max-preu');
+      slider.max = Math.ceil(max);
+      slider.value = slider.max;
+      document.getElementById('comparador-max-preu-label').textContent = 'Tots els preus';
+
+      renderComparadorOptions(cat.options, avg);
+    }
+
+    function filtrarComparador(maxPrice) {
+      if (!currentCategoryKey) return;
+      const cat = DB[currentCategoryKey];
+      const slider = document.getElementById('comparador-max-preu');
+      const isMax = parseFloat(maxPrice) >= parseFloat(slider.max);
+      document.getElementById('comparador-max-preu-label').textContent = isMax ? 'Tots els preus' : `Fins a ${maxPrice} €`;
+      
+      const filtered = cat.options.filter(o => o.price <= maxPrice);
+      const avg = cat.options.reduce((a, b) => a + b.price, 0) / cat.options.length;
+      renderComparadorOptions(filtered, avg);
+    }
+
+    function renderComparadorOptions(options, avg) {
       const optionsContainer = document.getElementById('comparador-options');
       optionsContainer.innerHTML = '';
 
-      cat.options.forEach(opt => {
-        // Color per indicar on es situa el preu respecte a la mitjana
+      if (options.length === 0) {
+        optionsContainer.innerHTML = '<p class="font-body text-sm text-ink-muted col-span-full text-center py-8">No s\'han trobat opcions per sota d\'aquest preu.</p>';
+        return;
+      }
+
+      options.forEach(opt => {
         let colorClass = 'text-amber-600';
         let borderClass = 'border-amber-200';
         if (opt.price <= avg * 0.9) { colorClass = 'text-brand-600'; borderClass = 'border-brand-200'; }
