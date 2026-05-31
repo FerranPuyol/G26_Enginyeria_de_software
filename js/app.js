@@ -1270,7 +1270,7 @@
               <input
                 type="number"
                 min="0"
-                step="0.01"
+                step="any"
                 value="${d.import}"
                 placeholder="0"
                 oninput="validarNegatiu(this,'error-despesa-${d.id}');actualitzarImportDespesa(${d.id}, this.value)"
@@ -1575,11 +1575,8 @@
       metaEl.classList.remove('ring-2', 'ring-red-400');
 
       // Comprova ingressos
-      if (!ingressos || ingressos <= 0) {
+      if (!ingressos || ingressos < 0) {
         errors.push('Els ingressos introduïts no són vàlids');
-        ingEl.classList.add('ring-2', 'ring-red-400');
-      } else if (ingressos > MAX) {
-        errors.push('El valor dels ingressos no és vàlid');
         ingEl.classList.add('ring-2', 'ring-red-400');
       }
 
