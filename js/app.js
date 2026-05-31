@@ -1952,6 +1952,11 @@
       if (session) {
         const email = session.user.email;
         const name  = session.user.user_metadata?.full_name || email;
+        const metes = session.user.user_metadata?.metes;
+        if (metes && Array.isArray(metes)) {
+          metesDades = metes;
+          localStorage.setItem('smartprice_metes', JSON.stringify(metesDades));
+        }
         updateAuthUI(email, name);
       }
     }
@@ -2353,6 +2358,15 @@
     let metesDades = JSON.parse(localStorage.getItem('smartprice_metes') || '[]');
     let ritmeEstalviMensual = 0;
 
+    // Sincronitza les metes a localStorage i, si l'usuari està registrat, a Supabase
+    async function syncMetesDades() {
+      localStorage.setItem('smartprice_metes', JSON.stringify(metesDades));
+      const session = await dbGetSession();
+      if (session) {
+        try { await dbSaveMetes(metesDades); } catch(e) {}
+      }
+    }
+
     async function initMetes() {
       // 1. Prioritzar el valor actual del DOM (per si l'usuari està fent proves sense desar)
       const metaDom = parseFloat(document.getElementById('meta-estalvi').value);
@@ -2376,7 +2390,7 @@
       renderMetes();
     }
 
-    function afegirNovaMeta() {
+    async function afegirNovaMeta() {
       const nomInput = document.getElementById('meta-nom');
       const costInput = document.getElementById('meta-cost');
       const actualInput = document.getElementById('meta-actual');
@@ -2401,7 +2415,7 @@
         actual
       });
       
-      localStorage.setItem('smartprice_metes', JSON.stringify(metesDades));
+      await syncMetesDades();
       
       nomInput.value = '';
       costInput.value = '';
@@ -2411,13 +2425,13 @@
       renderMetes();
     }
 
-    function eliminarMeta(id) {
+    async function eliminarMeta(id) {
       metesDades = metesDades.filter(m => m.id !== id);
-      localStorage.setItem('smartprice_metes', JSON.stringify(metesDades));
+      await syncMetesDades();
       renderMetes();
     }
 
-    function sumarDinersMeta(id) {
+    async function sumarDinersMeta(id) {
       const meta = metesDades.find(m => m.id === id);
       if (!meta) return;
       
@@ -2433,7 +2447,7 @@
       meta.actual += importAAfegir;
       if (meta.actual > meta.cost) meta.actual = meta.cost;
       
-      localStorage.setItem('smartprice_metes', JSON.stringify(metesDades));
+      await syncMetesDades();
       showGlobalToast(`Has sumat ${fmt(importAAfegir)} a la teva meta! 🎉`);
       renderMetes();
     }

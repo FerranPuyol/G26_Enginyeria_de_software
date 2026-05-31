@@ -195,3 +195,12 @@ async function dbUpdateUserName(newName) {
   if (error) throw error;
   return data;
 }
+
+// Guarda les metes a les dades de l'usuari (user_metadata) de Supabase Auth
+async function dbSaveMetes(metesArray) {
+  const { data, error } = await dbClient.auth.updateUser({
+    data: { metes: metesArray }
+  });
+  if (error) throw error;
+  return data;
+}
