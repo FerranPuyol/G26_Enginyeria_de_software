@@ -2427,6 +2427,27 @@
       renderMetes();
     }
 
+    function sumarDinersMeta(id) {
+      const meta = metesDades.find(m => m.id === id);
+      if (!meta) return;
+      
+      const text = window.prompt(`Quants diners vols afegir a la meta "${meta.nom}"?\n(Actualment tens ${fmt(meta.actual)} estalviats)`);
+      if (!text) return;
+      
+      const importAAfegir = parseFloat(text.replace(',', '.'));
+      if (isNaN(importAAfegir) || importAAfegir <= 0) {
+        showGlobalToast("L'import afegit no és vàlid", true);
+        return;
+      }
+      
+      meta.actual += importAAfegir;
+      if (meta.actual > meta.cost) meta.actual = meta.cost;
+      
+      localStorage.setItem('smartprice_metes', JSON.stringify(metesDades));
+      showGlobalToast(`Has sumat ${fmt(importAAfegir)} a la teva meta! 🎉`);
+      renderMetes();
+    }
+
     function renderMetes() {
       const container = document.getElementById('metes-llista');
       
@@ -2470,9 +2491,14 @@
               <h3 class="font-display font-700 text-lg text-ink">${escapeHtml(meta.nom)}</h3>
               <p class="font-body text-xs text-ink-muted mt-1">${previsioMsg}</p>
             </div>
-            <button onclick="eliminarMeta(${meta.id})" class="p-2 text-ink-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
+            <div class="flex gap-2">
+              <button onclick="sumarDinersMeta(${meta.id})" class="px-3 py-1.5 text-xs font-display font-700 text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg transition-colors flex items-center gap-1">
+                <i data-lucide="plus" class="w-3 h-3"></i> Sumar estalvi
+              </button>
+              <button onclick="eliminarMeta(${meta.id})" class="p-1.5 text-ink-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
           </div>
           
           <div class="space-y-2">
