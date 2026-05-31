@@ -116,18 +116,31 @@
       </div>
 
       <!-- Card 4 -->
+      <div class="bento-card p-7 sm:col-span-2 lg:col-span-1">
+        <div class="w-11 h-11 rounded-2xl bg-brand-50 flex items-center justify-center mb-5">
+          <i data-lucide="target" class="w-5 h-5 text-brand-500"></i>
+        </div>
+        <h3 class="font-display font-700 text-xl text-ink mb-2">Metes d'Estalvi</h3>
+        <p class="font-body text-sm text-ink-muted leading-relaxed">
+          Estableix projectes a llarg termini (un viatge, un portàtil) i calcula quant trigaràs a aconseguir-ho.
+        </p>
+        <button onclick="showView('metes')" class="mt-5 inline-flex items-center gap-1.5 font-display font-700 text-sm text-brand-600 hover:text-brand-700 transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i> Veure les metes →
+        </button>
+      </div>
+
+      <!-- Card 5 -->
       <div class="bento-card p-7 sm:col-span-2 lg:col-span-2">
         <div class="w-11 h-11 rounded-2xl bg-violet-50 flex items-center justify-center mb-5">
-          <i data-lucide="bell" class="w-5 h-5 text-violet-500"></i>
+          <i data-lucide="bar-chart" class="w-5 h-5 text-violet-500"></i>
         </div>
-        <h3 class="font-display font-700 text-xl text-ink mb-2">Alertes d'oferta personalitzades</h3>
+        <h3 class="font-display font-700 text-xl text-ink mb-2">Dashboard Analític</h3>
         <p class="font-body text-sm text-ink-muted leading-relaxed">
-          Rep una notificació quan el producte que compres habitualment baixi de preu al supermercat més proper. Mai
-          et perdis una oferta.
+          Analitza l'evolució del teu balanç financer i descobreix en què et gastes els diners amb gràfics professionals i predictius.
         </p>
-        <span class="placeholder-badge mt-5">
-          <i data-lucide="clock" class="w-3 h-3"></i> Pròximament
-        </span>
+        <button onclick="showView('dashboard')" class="mt-5 inline-flex items-center gap-1.5 font-display font-700 text-sm text-violet-600 hover:text-violet-700 transition-colors">
+          <i data-lucide="bar-chart" class="w-4 h-4"></i> Obrir Dashboard →
+        </button>
       </div>
 
     </div>
