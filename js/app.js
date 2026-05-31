@@ -1343,9 +1343,28 @@
       input.style.borderColor = isNeg ? '#ef4444' : '';
     }
 
+    window.MAX_INGRESSOS = 999999999;
+
+    window.validarIngressos = function(input) {
+      const val = parseFloat(input.value);
+      const errorEl = document.getElementById('error-ingressos');
+      if (!isNaN(val) && val > window.MAX_INGRESSOS) {
+        input.value = window.MAX_INGRESSOS;
+        errorEl.classList.remove('hidden');
+        input.style.borderColor = '#ef4444';
+        setTimeout(() => {
+          errorEl.classList.add('hidden');
+          input.style.borderColor = '';
+        }, 3000);
+      } else {
+        errorEl.classList.add('hidden');
+        input.style.borderColor = '';
+      }
+    };
+
     function teCampsNegatius() {
       const ingressos = parseFloat(document.getElementById('ingressos-nets').value);
-      if (!isNaN(ingressos) && ingressos < 0) return true;
+      if (!isNaN(ingressos) && (ingressos < 0 || ingressos > window.MAX_INGRESSOS)) return true;
       const meta = parseFloat(document.getElementById('meta-estalvi').value);
       if (!isNaN(meta) && meta < 0) return true;
       return despesesDades.some(d => { const v = parseFloat(d.import); return !isNaN(v) && v < 0; });

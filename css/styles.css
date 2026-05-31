@@ -25,13 +25,14 @@ body {
   position: relative;
   font-family: 'Syne', sans-serif;
   font-weight: 600;
-  font-size: 0.85rem;
-  letter-spacing: 0.02em;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
   color: #3a4455;
-  padding: 6px 14px;
+  padding: 6px 10px;
   border-radius: 999px;
   transition: color 0.2s, background 0.2s;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .nav-link:hover {

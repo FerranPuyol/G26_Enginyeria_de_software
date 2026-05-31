@@ -28,9 +28,11 @@
           <div class="relative">
             <span
               class="absolute left-4 top-1/2 -translate-y-1/2 font-display font-700 text-ink-muted text-sm">&euro;</span>
-            <input id="ingressos-nets" type="number" min="0" step="any" placeholder="ex: 1000"
+            <input id="ingressos-nets" type="number" min="0" max="999999999" step="any" placeholder="ex: 1000"
+              oninput="validarIngressos(this)"
               class="w-full h-12 rounded-xl border-2 border-brand-200 bg-brand-50/40 pl-9 pr-4 font-body text-sm text-ink placeholder-brand-300 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
           </div>
+          <p id="error-ingressos" class="hidden font-body text-xs text-red-500 font-600 pl-1">El valor màxim permès és 999.999.999 €</p>
           <p class="font-body text-xs text-ink-muted/60">Suma aqui el teu sou net, beca, ajuda familiar i qualsevol
             altre ingres mensual.</p>
         </div>
