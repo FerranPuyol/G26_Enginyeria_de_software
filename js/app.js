@@ -1278,7 +1278,6 @@
     function eliminarDespesa(id) {
       despesesDades = despesesDades.filter(d => d.id !== id);
       renderDespeses();
-      calcularBalanc();
     }
 
     function validarNegatiu(input, errorId) {
@@ -1303,7 +1302,7 @@
 
     function actualitzarImportDespesa(id, val) {
       const d = despesesDades.find(d => d.id === id);
-      if (d) { d.import = val; actualitzarTotalDespeses(); calcularBalanc(); }
+      if (d) { d.import = val; actualitzarTotalDespeses(); }
     }
 
     function actualitzarTotalDespeses() {
@@ -1510,14 +1509,53 @@
     }
 
     function guardarPressupost() {
-      if (teCampsNegatius()) return;
-      const ingressos = parseFloat(document.getElementById('ingressos-nets').value) || 0;
-      if (ingressos <= 0) {
-        document.getElementById('ingressos-nets').focus();
-        document.getElementById('ingressos-nets').classList.add('ring-2', 'ring-red-400');
-        setTimeout(() => document.getElementById('ingressos-nets').classList.remove('ring-2', 'ring-red-400'), 1500);
+      const MAX    = 100000;
+      const ingEl  = document.getElementById('ingressos-nets');
+      const metaEl = document.getElementById('meta-estalvi');
+      const ingressos = parseFloat(ingEl.value);
+      const meta      = parseFloat(metaEl.value);
+      const errors = [];
+
+      // Reset highlights
+      ingEl.classList.remove('ring-2', 'ring-red-400');
+      metaEl.classList.remove('ring-2', 'ring-red-400');
+
+      // Comprova ingressos
+      if (!ingressos || ingressos <= 0) {
+        errors.push('Els ingressos introduïts no són vàlids');
+        ingEl.classList.add('ring-2', 'ring-red-400');
+      } else if (ingressos > MAX) {
+        errors.push('El valor dels ingressos no és vàlid');
+        ingEl.classList.add('ring-2', 'ring-red-400');
+      }
+
+      // Comprova meta
+      if (!isNaN(meta) && meta < 0) {
+        errors.push('El valor de la meta d\'estalvi no és vàlid');
+        metaEl.classList.add('ring-2', 'ring-red-400');
+      } else if (!isNaN(meta) && meta > MAX) {
+        errors.push('El valor de la meta d\'estalvi no és vàlid');
+        metaEl.classList.add('ring-2', 'ring-red-400');
+      }
+
+      // Comprova cada despesa
+      despesesDades.forEach(d => {
+        const v   = parseFloat(d.import);
+        const nom = d.nom ? `"${d.nom}"` : 'una despesa';
+        if (!isNaN(v) && (v < 0 || v > MAX)) errors.push(`El valor de la despesa ${nom} no és vàlid`);
+      });
+
+      if (errors.length > 0) {
+        showGlobalToast(errors.join(' \u00b7 '), true);
+        setTimeout(() => {
+          ingEl.classList.remove('ring-2', 'ring-red-400');
+          metaEl.classList.remove('ring-2', 'ring-red-400');
+        }, 2500);
         return;
       }
+
+      if (teCampsNegatius()) return;
+      
       calcularBalanc();
       const resEl = document.getElementById('balanc-resum');
       const navH  = 64 + 16;
