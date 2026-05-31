@@ -1,8 +1,8 @@
 // ── View routing ──────────────────────────────
-    const views = ['inici', 'pressupost', 'metes', 'comparador', 'assessor', 'login', 'register', 'historial', 'compte'];
-    const navIds = ['inici', 'pressupost', 'metes', 'comparador', 'assessor', 'historial', 'compte'];
-    const navDesktop = { inici: 'nav-inici', pressupost: 'nav-pressupost', metes: 'nav-metes', comparador: 'nav-comparador', assessor: 'nav-assessor', historial: 'nav-historial', compte: 'nav-compte' };
-    const navMobile  = { inici: 'mnav-inici', pressupost: 'mnav-pressupost', metes: 'mnav-metes', comparador: 'mnav-comparador', assessor: 'mnav-assessor', historial: 'mnav-historial', compte: 'mnav-compte' };
+    const views = ['inici', 'pressupost', 'metes', 'dashboard', 'comparador', 'assessor', 'login', 'register', 'historial', 'compte'];
+    const navIds = ['inici', 'pressupost', 'metes', 'dashboard', 'comparador', 'assessor', 'historial', 'compte'];
+    const navDesktop = { inici: 'nav-inici', pressupost: 'nav-pressupost', metes: 'nav-metes', dashboard: 'nav-dashboard', comparador: 'nav-comparador', assessor: 'nav-assessor', historial: 'nav-historial', compte: 'nav-compte' };
+    const navMobile  = { inici: 'mnav-inici', pressupost: 'mnav-pressupost', metes: 'mnav-metes', dashboard: 'mnav-dashboard', comparador: 'mnav-comparador', assessor: 'mnav-assessor', historial: 'mnav-historial', compte: 'mnav-compte' };
 
     function showView(name) {
       views.forEach(v => {
@@ -21,6 +21,7 @@
       if (name === 'historial') initHistorial();
       if (name === 'compte')   initCompte();
       if (name === 'metes')    initMetes();
+      if (name === 'dashboard') initDashboard();
     }
 
     // ── Mobile hamburger ──────────────────────────
@@ -2521,4 +2522,161 @@
       });
       
       if (window.lucide) lucide.createIcons();
+    }
+
+
+    // ══════════════════════════════════════════════
+    //  MÒDUL DASHBOARD ANALÍTIC
+    // ══════════════════════════════════════════════
+
+    let chartDistribucioInstancia = null;
+    let chartEvolucioInstancia = null;
+
+    async function initDashboard() {
+      // 1. KPI: Total Estalviat (Metes actuals)
+      const metes = JSON.parse(localStorage.getItem('smartprice_metes') || '[]');
+      const totalEstalviat = metes.reduce((acc, m) => acc + m.actual, 0);
+      document.getElementById('dash-estalvi-total').textContent = fmt(totalEstalviat);
+
+      // Metes KPI
+      const metesCompletades = metes.filter(m => m.actual >= m.cost).length;
+      const pctMetes = metes.length > 0 ? Math.round((metesCompletades / metes.length) * 100) : 0;
+      document.getElementById('dash-compliment').textContent = pctMetes + '%';
+
+      // 2. Distribució de despeses
+      let categories = {};
+      let totalDespesaActual = 0;
+      
+      // Intentar primer amb les dades locals no desades
+      despesesDades.forEach(d => {
+        const importNum = parseFloat(d.import) || 0;
+        if (importNum > 0) {
+          totalDespesaActual += importNum;
+          if (!categories[d.nom]) categories[d.nom] = 0;
+          categories[d.nom] += importNum;
+        }
+      });
+
+      // Si no hi ha res localment, anar a buscar a la base de dades
+      if (totalDespesaActual === 0) {
+        try {
+          const lastP = await dbGetLastPressupost();
+          if (lastP && lastP.despeses) {
+            const despesesBD = typeof lastP.despeses === 'string' ? JSON.parse(lastP.despeses) : lastP.despeses;
+            despesesBD.forEach(d => {
+              const importNum = parseFloat(d.import) || 0;
+              if (importNum > 0) {
+                totalDespesaActual += importNum;
+                if (!categories[d.nom]) categories[d.nom] = 0;
+                categories[d.nom] += importNum;
+              }
+            });
+          }
+        } catch(e) {}
+      }
+
+      document.getElementById('dash-despesa-mitjana').textContent = fmt(totalDespesaActual);
+
+      if (totalDespesaActual === 0) {
+        document.getElementById('dash-no-despeses').classList.remove('hidden');
+      } else {
+        document.getElementById('dash-no-despeses').classList.add('hidden');
+        renderDistChart(categories);
+      }
+
+      // 3. Evolució de l'estalvi (Historial)
+      try {
+        const history = await dbGetPressupostos();
+        document.getElementById('dash-mesos').textContent = history.length;
+        if (history.length < 2) {
+          document.getElementById('dash-no-historial').classList.remove('hidden');
+        } else {
+          document.getElementById('dash-no-historial').classList.add('hidden');
+          // Ordenem històric per data ascendent per pintar el gràfic de línies
+          history.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+          renderEvolChart(history);
+        }
+      } catch (err) {
+        document.getElementById('dash-mesos').textContent = '0';
+        document.getElementById('dash-no-historial').classList.remove('hidden');
+      }
+    }
+
+    function renderDistChart(categories) {
+      const ctx = document.getElementById('chart-distribucio').getContext('2d');
+      if (chartDistribucioInstancia) chartDistribucioInstancia.destroy();
+
+      const labels = Object.keys(categories).map(c => c.charAt(0).toUpperCase() + c.slice(1));
+      const data = Object.values(categories);
+
+      chartDistribucioInstancia = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { font: { family: 'Outfit, sans-serif' } } }
+          },
+          cutout: '70%'
+        }
+      });
+    }
+
+    function renderEvolChart(history) {
+      const ctx = document.getElementById('chart-evolucio').getContext('2d');
+      if (chartEvolucioInstancia) chartEvolucioInstancia.destroy();
+
+      const labels = history.map(h => {
+        const d = new Date(h.created_at);
+        return d.toLocaleDateString('ca-ES', { month: 'short', day: 'numeric' });
+      });
+      
+      const dataIngressos = history.map(h => h.ingressos_totals || 0);
+      const dataDespeses = history.map(h => h.total_despeses || 0);
+
+      chartEvolucioInstancia = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Ingressos',
+              data: dataIngressos,
+              backgroundColor: '#10b981', // Verd brand
+              borderRadius: 4
+            },
+            {
+              label: 'Despeses',
+              data: dataDespeses,
+              backgroundColor: '#ef4444', // Vermell alert
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { font: { family: 'Outfit, sans-serif' } } }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { borderDash: [5, 5], color: '#e2e8f0' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
     }

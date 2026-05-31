@@ -1,0 +1,64 @@
+<!-- ─────────────────────────────────────────────
+     VISTA: DASHBOARD ANALÍTIC
+───────────────────────────────────────────── -->
+<section id="view-dashboard" class="view hidden">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-20">
+
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-sm font-display font-700 mb-4">
+        <i data-lucide="bar-chart" class="w-4 h-4"></i> Estadístiques Avançades
+      </div>
+      <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink mb-3">Dashboard</h1>
+      <p class="font-body text-lg text-ink-muted">Analitza els teus hàbits de consum amb gràfics professionals.</p>
+    </div>
+
+    <!-- Indicadors clau -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="dash-kpis">
+      <div class="bento-card p-5">
+        <p class="font-body text-xs text-ink-muted uppercase tracking-wide font-600 mb-1">Total Estalviat</p>
+        <p class="font-display font-800 text-2xl text-brand-600" id="dash-estalvi-total">0 €</p>
+      </div>
+      <div class="bento-card p-5">
+        <p class="font-body text-xs text-ink-muted uppercase tracking-wide font-600 mb-1">Mitjana Despeses</p>
+        <p class="font-display font-800 text-2xl text-red-500" id="dash-despesa-mitjana">0 €</p>
+      </div>
+      <div class="bento-card p-5">
+        <p class="font-body text-xs text-ink-muted uppercase tracking-wide font-600 mb-1">Mesos Registrats</p>
+        <p class="font-display font-800 text-2xl text-ink" id="dash-mesos">0</p>
+      </div>
+      <div class="bento-card p-5">
+        <p class="font-body text-xs text-ink-muted uppercase tracking-wide font-600 mb-1">Compliment Metes</p>
+        <p class="font-display font-800 text-2xl text-violet-500" id="dash-compliment">0%</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <!-- Gràfic 1: Distribució de despeses -->
+      <div class="bento-card p-6">
+        <h2 class="font-display font-700 text-xl text-ink mb-2">Com reparteixes els teus diners?</h2>
+        <p class="font-body text-sm text-ink-muted mb-6">Basat en el teu pressupost actual</p>
+        <div class="relative h-64 flex items-center justify-center">
+          <canvas id="chart-distribucio"></canvas>
+          <div id="dash-no-despeses" class="absolute inset-0 flex items-center justify-center bg-white/80 hidden">
+            <p class="font-body text-sm text-ink-muted">Afegeix despeses al teu pressupost per veure el gràfic.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gràfic 2: Evolució de l'Estalvi -->
+      <div class="bento-card p-6">
+        <h2 class="font-display font-700 text-xl text-ink mb-2">Evolució de l'estalvi</h2>
+        <p class="font-body text-sm text-ink-muted mb-6">El teu marge disponible als últims mesos</p>
+        <div class="relative h-64 flex items-center justify-center">
+          <canvas id="chart-evolucio"></canvas>
+          <div id="dash-no-historial" class="absolute inset-0 flex items-center justify-center bg-white/80 hidden">
+            <p class="font-body text-sm text-ink-muted">Guarda pressupostos a l'historial per veure l'evolució.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
