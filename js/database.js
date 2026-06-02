@@ -204,3 +204,132 @@ async function dbSaveMetes(metesArray) {
   if (error) throw error;
   return data;
 }
+
+// ── MÒDUL ASSISTENT IA / SUPABASE ─────────────────
+// NOTE: The `ai_folders` table should include optional metadata columns:
+// icon text default '📁', color text default 'blue', position integer default 0
+// Example SQL:
+// alter table ai_folders
+// add column if not exists icon text default '📁',
+// add column if not exists color text default 'blue',
+// add column if not exists position integer default 0;
+async function dbGetAIFolders(userId) {
+  const { data, error } = await dbClient
+    .from('ai_folders')
+    .select('*')
+    .eq('user_id', userId)
+    .order('position', { ascending: true })
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function dbCreateAIFolder({ userId, id, name, icon, color, position, createdAt, updatedAt }) {
+  const { data, error } = await dbClient
+    .from('ai_folders')
+    .insert({ id, user_id: userId, name, icon, color, position, created_at: createdAt, updated_at: updatedAt })
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function dbUpsertAIFolder({ userId, id, name, icon, color, position, createdAt, updatedAt }) {
+  const { data, error } = await dbClient
+    .from('ai_folders')
+    .upsert({ id, user_id: userId, name, icon, color, position, created_at: createdAt, updated_at: updatedAt }, { onConflict: 'id' })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function dbUpdateAIFolder(id, name) {
+  const { data, error } = await dbClient
+    .from('ai_folders')
+    .update({ name, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
+  return data;
+}
+
+async function dbDeleteAIFolder(id, userId) {
+  const query = dbClient.from('ai_folders').delete().eq('id', id);
+  if (userId) query.eq('user_id', userId);
+  const { error } = await query;
+  if (error) throw error;
+}
+
+async function dbGetAIChats(userId) {
+  const { data, error } = await dbClient
+    .from('ai_chats')
+    .select('*')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function dbCreateAIChat({ userId, id, folderId, title, createdAt, updatedAt }) {
+  const { data, error } = await dbClient
+    .from('ai_chats')
+    .insert({ id, user_id: userId, folder_id: folderId, title, created_at: createdAt, updated_at: updatedAt })
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function dbUpsertAIChat({ userId, id, folderId, title, createdAt, updatedAt }) {
+  const { data, error } = await dbClient
+    .from('ai_chats')
+    .upsert({ id, user_id: userId, folder_id: folderId, title, created_at: createdAt, updated_at: updatedAt }, { onConflict: 'id' })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function dbUpdateAIChat(id, updates) {
+  const payload = {
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+  const { data, error } = await dbClient
+    .from('ai_chats')
+    .update(payload)
+    .eq('id', id);
+  if (error) throw error;
+  return data;
+}
+
+async function dbDeleteAIChat(id, userId) {
+  const query = dbClient.from('ai_chats').delete().eq('id', id);
+  if (userId) query.eq('user_id', userId);
+  const { error } = await query;
+  if (error) throw error;
+}
+
+async function dbGetAIMessages(userId) {
+  const { data, error } = await dbClient
+    .from('ai_messages')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+async function dbCreateAIMessage({ userId, chatId, role, content, meta }) {
+  const { data, error } = await dbClient
+    .from('ai_messages')
+    .insert({ user_id: userId, chat_id: chatId, role, content, meta })
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function dbDeleteAIMessages(chatId, userId) {
+  const query = dbClient.from('ai_messages').delete().eq('chat_id', chatId);
+  if (userId) query.eq('user_id', userId);
+  const { error } = await query;
+  if (error) throw error;
+}

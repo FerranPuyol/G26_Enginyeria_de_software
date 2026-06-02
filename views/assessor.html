@@ -2,7 +2,7 @@
      VISTA 4: ASSESSOR IA — Funcional
 ───────────────────────────────────────────── -->
 <section id="view-assessor" class="view">
-  <div class="max-w-2xl mx-auto px-4 sm:px-6 py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-16">
 
     <!-- Header -->
     <div class="mb-8 text-center">
@@ -16,101 +16,99 @@
       </p>
     </div>
 
-    <!-- Chat card -->
-    <div class="bento-card overflow-hidden flex flex-col" style="min-height:520px;">
-
-      <!-- Chat header -->
-      <div class="flex items-center justify-between px-5 py-4 border-b border-ink-muted/10 bg-white flex-shrink-0">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center shadow-glow-green">
-            <i data-lucide="bot" class="w-4 h-4 text-white"></i>
+    <div class="grid gap-6 lg:grid-cols-[280px_1fr]">
+      <aside id="ai-sidebar" class="hidden lg:flex flex-col rounded-3xl border border-ink-muted/10 bg-white shadow-card overflow-hidden">
+        <div class="px-5 py-5 border-b border-ink-muted/10">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <p class="font-display font-700 text-xs text-brand-700 uppercase tracking-[0.25em]">Assessor IA</p>
+              <h2 class="font-display font-800 text-2xl text-ink mt-3">Carpetes</h2>
+            </div>
+            <span class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">AI</span>
           </div>
+          <p class="mt-3 font-body text-sm text-ink-muted">Organitza el teu treball en carpetes i accedeix als xats des d'una sola barra lateral.</p>
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <button onclick="createFolderPrompt()" class="rounded-2xl bg-brand-600 text-white px-4 py-3 text-sm font-semibold shadow-sm hover:bg-brand-700 transition">+ Nova carpeta</button>
+            <button onclick="createChatPrompt()" class="rounded-2xl border border-ink-muted/10 bg-surface px-4 py-3 text-sm font-semibold text-ink-muted hover:border-brand-300">+ Nou xat</button>
+          </div>
+        </div>
+        <div class="px-5 py-5 overflow-y-auto space-y-4" style="max-height:calc(100vh - 260px)">
+          <div class="flex items-center justify-between gap-2">
+            <p class="font-display font-700 text-sm text-ink">Les teves carpetes</p>
+            <button onclick="toggleAssessorSidebar()" class="lg:hidden text-brand-600 text-xs font-semibold hover:text-brand-700">Tancar</button>
+          </div>
+          <div id="ai-folder-list" class="space-y-3"></div>
+        </div>
+        <div class="px-5 py-5 border-t border-ink-muted/10">
+          <button onclick="exportAIState()" class="w-full rounded-2xl border border-ink-muted/10 bg-surface px-4 py-3 text-xs font-semibold text-ink-muted hover:border-brand-300">Exporta converses</button>
+        </div>
+      </aside>
+
+      <div class="bento-card overflow-hidden flex flex-col min-h-[520px]">
+        <div class="px-5 py-4 border-b border-ink-muted/10 bg-white flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p class="font-display font-700 text-sm text-ink">SmartPrice Assistant</p>
-            <div class="flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
-              <span class="font-body text-xs text-brand-600">En línia · respon en català</span>
-            </div>
+            <p id="ai-active-chat-title" class="font-display font-800 text-3xl text-ink">Assessor IA</p>
+            <p id="ai-active-chat-meta" class="font-body text-sm text-ink-muted mt-1">Crea un xat per començar.</p>
           </div>
-        </div>
-        <button onclick="clearChat()" title="Netejar conversa"
-          class="w-8 h-8 rounded-xl bg-surface hover:bg-red-50 border border-ink-muted/10 hover:border-red-200 flex items-center justify-center transition-colors group">
-          <i data-lucide="trash-2" class="w-3.5 h-3.5 text-ink-muted group-hover:text-red-400"></i>
-        </button>
-      </div>
-
-      <!-- Messages area -->
-      <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4 bg-surface"
-        style="max-height:420px; scroll-behavior:smooth;">
-
-        <!-- Welcome message -->
-        <div class="flex gap-3" id="msg-welcome">
-          <div class="w-7 h-7 rounded-full bg-brand-100 flex-shrink-0 flex items-center justify-center mt-0.5">
-            <i data-lucide="bot" class="w-3 h-3 text-brand-600"></i>
-          </div>
-          <div class="flex flex-col gap-2 max-w-sm">
-            <div class="chat-bubble-in px-4 py-3">
-              <p class="font-body text-sm text-ink leading-relaxed">
-                Hola! 👋 Soc el teu assessor de pressupost. Escriu-me una petició com ara:
-              </p>
-              <ul class="mt-2 space-y-1">
-                <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Busca'm gimnasos per menys de 30€/mes"</em></li>
-                <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Plataformes de streaming per menys de 10€"</em></li>
-                <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Transport públic mensual a Barcelona"</em></li>
-              </ul>
-            </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="createChatPrompt()" class="rounded-2xl border border-ink-muted/10 bg-surface px-3 py-2 text-xs font-display font-600 text-ink-muted hover:border-brand-300">Nou xat</button>
+            <button onclick="duplicateActiveChat()" class="rounded-2xl border border-ink-muted/10 bg-surface px-3 py-2 text-xs font-display font-600 text-ink-muted hover:border-brand-300">Duplica</button>
+            <button onclick="exportActiveChat()" class="rounded-2xl border border-ink-muted/10 bg-surface px-3 py-2 text-xs font-display font-600 text-ink-muted hover:border-brand-300">Exporta</button>
+            <button onclick="renameChatPrompt()" class="rounded-2xl border border-ink-muted/10 bg-surface px-3 py-2 text-xs font-display font-600 text-ink-muted hover:border-brand-300">Renombra</button>
+            <button onclick="deleteChatPrompt()" class="rounded-2xl border border-ink-muted/10 bg-surface px-3 py-2 text-xs font-display font-600 text-ink-muted hover:border-red-300">Elimina</button>
+            <button onclick="clearChat()" class="rounded-2xl border border-ink-muted/10 bg-surface px-3 py-2 text-xs font-display font-600 text-ink-muted hover:border-red-300">Neteja</button>
+            <button onclick="toggleAssessorSidebar()" class="lg:hidden rounded-2xl border border-ink-muted/10 bg-surface px-3 py-2 text-xs font-display font-600 text-ink-muted">Carpetes</button>
           </div>
         </div>
 
-      </div>
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50" style="scroll-behavior:smooth;"></div>
 
-      <!-- Quick chips -->
-      <div id="chat-chips" class="px-4 py-3 border-t border-ink-muted/06 bg-white flex flex-wrap gap-2">
-        <span class="font-body text-xs text-ink-muted mr-1 self-center">Proves ràpides:</span>
-        <button onclick="sendChip('Busca\'m cadenes de gimnasos per menys de 30€ al mes')"
-          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
-          🏋️ Gimnàs &lt;30€
-        </button>
-        <button onclick="sendChip('Piscines municipals a Barcelona')"
-          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
-          🏊 Piscines
-        </button>
-        <button onclick="sendChip('Quin pla de streaming de video puc contractar per menys de 6€?')"
-          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
-          📺 Streaming &lt;6€
-        </button>
-        <button onclick="sendChip('Opcions de transport mensual a Barcelona per menys de 25€')"
-          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
-          🚇 Transport BCN
-        </button>
-        <button onclick="sendChip('Tarifes de mobil econòmiques per menys de 10€')"
-          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
-          📱 Mòbil &lt;10€
-        </button>
-        <button onclick="sendChip('Cursos d\'angles a Barcelona')"
-          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
-          🗣️ Anglès
-        </button>
-        <button onclick="sendChip('Opcions de coworking a Barcelona per menys de 200€')"
-          class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
-          💻 Coworking
-        </button>
-      </div>
+        <div id="chat-chips" class="px-4 py-3 border-t border-ink-muted/10 bg-white flex flex-wrap gap-2">
+          <span class="font-body text-xs text-ink-muted mr-1 self-center">Proves ràpides:</span>
+          <button onclick="sendChip('Busca\'m cadenes de gimnasos per menys de 30€ al mes')"
+            class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+            🏋️ Gimnàs &lt;30€
+          </button>
+          <button onclick="sendChip('Piscines municipals a Barcelona')"
+            class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+            🏊 Piscines
+          </button>
+          <button onclick="sendChip('Quin pla de streaming de video puc contractar per menys de 6€?')"
+            class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+            📺 Streaming &lt;6€
+          </button>
+          <button onclick="sendChip('Opcions de transport mensual a Barcelona per menys de 25€')"
+            class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+            🚇 Transport BCN
+          </button>
+          <button onclick="sendChip('Tarifes de mobil econòmiques per menys de 10€')"
+            class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+            📱 Mòbil &lt;10€
+          </button>
+          <button onclick="sendChip('Cursos d\'angles a Barcelona')"
+            class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+            🗣️ Anglès
+          </button>
+          <button onclick="sendChip('Opcions de coworking a Barcelona per menys de 200€')"
+            class="chip-btn font-display font-600 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-full transition-colors">
+            💻 Coworking
+          </button>
+        </div>
 
-      <!-- Input bar -->
-      <div class="px-4 py-3 border-t border-ink-muted/10 bg-white flex items-end gap-2 flex-shrink-0">
-        <textarea id="chat-input" rows="1" placeholder='Ex: "Busca\'m cadenes de gimnasos per menys de 30€ al mes"'
-          onkeydown="handleChatKey(event)" oninput="autoResizeTextarea(this)"
-          class="flex-1 rounded-2xl border-2 border-brand-200 bg-brand-50/30 px-4 py-2.5 font-body text-sm text-ink placeholder-brand-300/70 focus:outline-none focus:border-brand-400 focus:bg-white transition-colors resize-none overflow-hidden leading-relaxed"
-          style="max-height:96px;"></textarea>
-        <button id="chat-send-btn" onclick="sendMessage()"
-          class="w-10 h-10 rounded-full bg-brand-500 hover:bg-brand-600 flex-shrink-0 flex items-center justify-center shadow-glow-green transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
-          title="Enviar (Enter)">
-          <i data-lucide="send" class="w-4 h-4 text-white"></i>
-        </button>
+        <div class="px-4 py-3 border-t border-ink-muted/10 bg-white flex items-end gap-2 flex-shrink-0">
+          <textarea id="chat-input" rows="1" placeholder='Ex: "Busca\'m cadenes de gimnasos per menys de 30€ al mes"'
+            onkeydown="handleChatKey(event)" oninput="autoResizeTextarea(this)"
+            class="flex-1 rounded-3xl border border-slate-200 bg-white px-4 py-3 font-body text-sm text-ink placeholder-slate-400 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-colors resize-none overflow-hidden leading-relaxed"
+            style="max-height:96px;"></textarea>
+          <button id="chat-send-btn" onclick="sendMessage()"
+            class="w-12 h-12 rounded-full bg-brand-500 hover:bg-brand-600 flex-shrink-0 flex items-center justify-center shadow-lg shadow-brand-500/10 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+            title="Enviar (Enter)">
+            <i data-lucide="send" class="w-5 h-5 text-white"></i>
+          </button>
+        </div>
       </div>
-
     </div>
+    <div id="ai-modal-root" class="ai-modal-backdrop hidden"></div>
 
     <p class="text-center text-xs text-ink-muted/40 font-body mt-4">
       Les respostes es basen en dades de mercat aproximades · SmartPrice BCN 2025

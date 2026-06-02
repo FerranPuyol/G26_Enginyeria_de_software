@@ -22,6 +22,7 @@
       if (name === 'compte')   initCompte();
       if (name === 'metes')    initMetes();
       if (name === 'dashboard') initDashboard();
+      if (name === 'assessor')  initAssessor();
     }
 
     // ── Mobile hamburger ──────────────────────────
@@ -908,115 +909,1374 @@
       },
     };
 
-    // ── Parser de consulta intel·ligent ──────────
-    function parseQuery(rawText) {
-      const t = norm(rawText);
-
-      // --- Detecta preu límit ---
-      const pricePatterns = [
-        /(?:menys de|menos de|per menys de|fins a|maxim|max|inferior a|no mes de|no mes cara de|baix de|sota els?)\s*(\d+(?:[.,]\d+)?)/i,
-        /(\d+(?:[.,]\d+)?)\s*(?:euros?|eur|€)\s*(?:al mes|\/mes|mensuals?|mensual|al mes|per mes)?/i,
-        /<\s*(\d+(?:[.,]\d+)?)/,
-      ];
-      let maxPrice = null;
-      for (const pat of pricePatterns) {
-        const m = t.match(pat);
-        if (m) { maxPrice = parseFloat(m[1].replace(',', '.')); break; }
-      }
-
-      // --- Detecta categoria per àlies ---
-      let bestCategory = null;
-      let bestScore = 0;
-
-      // First pass: exact alias match (longest match wins)
-      const aliasKeys = Object.keys(ALIAS).sort((a, b) => b.length - a.length);
-      for (const alias of aliasKeys) {
-        if (t.includes(alias)) {
-          const cat = ALIAS[alias];
-          const score = alias.length; // longer = more specific
-          if (score > bestScore) { bestScore = score; bestCategory = cat; }
-        }
-      }
-
-      // Second pass: keyword scoring on DB labels
-      if (!bestCategory) {
-        for (const [key, cat] of Object.entries(DB)) {
-          const label = norm(cat.label);
-          const labelWords = label.split(' ');
-          const score = labelWords.filter(w => w.length > 3 && t.includes(w)).length;
-          if (score > bestScore) { bestScore = score; bestCategory = key; }
-        }
-      }
-
-      // Extract what the user was looking for (for the error message)
-      // Remove price expressions and common filler words
-      const querySubject = rawText
-        .replace(/(?:busca'm|busquem|busca|cerque|cerca|mostra'm|mostra|vull saber|vull trobar|quant costa|quant val|preus? de|preus? d'|tarifes? de|opcions? de|alternativ\w+ de)\s*/gi, '')
-        .replace(/(?:per menys de|menys de|fins a|màxim|per a?|a)\s*\d+[€$]?(?:\/mes|al mes)?/gi, '')
-        .replace(/(?:al mes|mensual|mensuals|€|euros?)/gi, '')
+    function normalizeText(text) {
+      return String(text || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/["“”«»'·]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .toLowerCase()
+        .replace(/\bmes\b/g, 'mas')
+        .replace(/\bm[ée]s\b/g, 'mas')
+        .replace(/\bmenys\b/g, 'menos')
+        .replace(/\bproductes\b/g, 'productos')
+        .replace(/\bpiscines\b/g, 'piscinas')
         .trim();
-
-      return { maxPrice, category: bestCategory, querySubject };
     }
 
-    // ── Motor de resposta offline ─────────────────
-    function queryOffline(text) {
-      const { maxPrice, category, querySubject } = parseQuery(text);
-
-      if (!category) {
-        const categories = Object.values(DB).map(c => c.label).join(', ');
+    function parsePriceIntent(rawText) {
+      const normalized = normalizeText(rawText);
+      const betweenMatch = normalized.match(/\bentre\s+(\d+(?:[.,]\d+)?)\s*(?:€|euros?)?\s*(?:i|y|a)\s*(\d+(?:[.,]\d+)?)/);
+      if (betweenMatch) {
         return {
-          found: false,
-          errorMessage: `No tinc informació sobre "${querySubject || text}". Les categories disponibles són: ${categories}.`
+          productQuery: normalized.replace(betweenMatch[0], '').trim(),
+          priceOperator: 'between',
+          minPrice: parseFloat(betweenMatch[1].replace(',', '.')),
+          maxPrice: parseFloat(betweenMatch[2].replace(',', '.')),
+          intent: detectIntent(normalized),
+          language: detectLanguage(normalized),
         };
       }
 
-      const cat = DB[category];
-      let options = [...cat.options];
-
-      if (maxPrice !== null) {
-        const filtered = options.filter(o => o.price <= maxPrice);
-        if (filtered.length === 0) {
-          const cheapest = [...options].sort((a, b) => a.price - b.price)[0];
-          return {
-            found: false,
-            errorMessage: `No he trobat opcions de ${cat.label} per menys de ${maxPrice}€. L'opció més econòmica disponible és "${cheapest.name}" a ${cheapest.priceLabel}. Vols que et mostri totes les opcions sense filtre de preu?`
-          };
-        }
-        options = filtered;
+      const gtMatch = normalized.match(/\b(?:m[ée]s de|mas de|mayor que|superior a|por encima de|a partir de|>\s*)(\d+(?:[.,]\d+)?)/);
+      if (gtMatch) {
+        return {
+          productQuery: normalized.replace(gtMatch[0], '').trim(),
+          priceOperator: 'gt',
+          minPrice: parseFloat(gtMatch[1].replace(',', '.')),
+          maxPrice: null,
+          intent: detectIntent(normalized),
+          language: detectLanguage(normalized),
+        };
       }
 
-      options.sort((a, b) => a.price - b.price);
-
-      // Integració amb el pressupost actual (Lectura intel·ligent)
-      let contextBudget = '';
-      if (despesesDades.length > 0) {
-        const matchingExpense = despesesDades.find(d => {
-          const nom = (d.nom || '').toLowerCase();
-          return nom.includes(category) || nom.includes(querySubject) || norm(cat.label).includes(nom);
-        });
-        
-        if (matchingExpense) {
-          const importActual = parseFloat(matchingExpense.import);
-          if (!isNaN(importActual)) {
-            const cheaperOptions = options.filter(o => o.price < importActual);
-            if (cheaperOptions.length > 0) {
-              const bestSaving = importActual - cheaperOptions[0].price;
-              contextBudget = `<div class="mt-3 p-3 bg-brand-50 border border-brand-200 rounded-xl text-sm text-brand-800"><i data-lucide="piggy-bank" class="w-4 h-4 inline mr-1 mb-0.5"></i> He vist que actualment pagues <b>${importActual}€</b> per <i>${matchingExpense.nom}</i> al teu pressupost. Si canvies a la opció més econòmica (${cheaperOptions[0].name}), podries <b>estalviar ${bestSaving.toFixed(2)}€ al mes</b>!</div>`;
-            } else {
-              contextBudget = `<div class="mt-3 p-3 bg-brand-50 border border-brand-200 rounded-xl text-sm text-brand-800"><i data-lucide="check-circle" class="w-4 h-4 inline mr-1 mb-0.5"></i> Ja tens l'opció més barata al teu pressupost (pagues ${importActual}€). Bona feina!</div>`;
-            }
-          }
-        }
+      const ltMatch = normalized.match(/\b(?:menys de|menos de|inferior a|por debajo de|sota|bajo|<\s*)(\d+(?:[.,]\d+)?)/);
+      if (ltMatch) {
+        return {
+          productQuery: normalized.replace(ltMatch[0], '').trim(),
+          priceOperator: 'lt',
+          minPrice: null,
+          maxPrice: parseFloat(ltMatch[1].replace(',', '.')),
+          intent: detectIntent(normalized),
+          language: detectLanguage(normalized),
+        };
       }
 
-      const priceStr = maxPrice ? ` per menys de ${maxPrice}€` : '';
-      const summary = `He trobat ${options.length} opció${options.length > 1 ? 's' : ''} de ${cat.label}${priceStr} a Barcelona: ${contextBudget}`;
+      const lteMatch = normalized.match(/\b(?:m[aá]xim(?:o|)|maximo|fins a|hasta|no [mM]es de|no mes de)\s*(\d+(?:[.,]\d+)?)/);
+      if (lteMatch) {
+        return {
+          productQuery: normalized.replace(lteMatch[0], '').trim(),
+          priceOperator: 'lte',
+          minPrice: null,
+          maxPrice: parseFloat(lteMatch[1].replace(',', '.')),
+          intent: detectIntent(normalized),
+          language: detectLanguage(normalized),
+        };
+      }
 
-      return { found: true, category: cat.label, maxPrice, summary, options, tip: cat.tip };
+      const gteMatch = normalized.match(/\b(?:m[ií]nim(?:o|)|minimo|a partir de|com a minim)\s*(\d+(?:[.,]\d+)?)/);
+      if (gteMatch) {
+        return {
+          productQuery: normalized.replace(gteMatch[0], '').trim(),
+          priceOperator: 'gte',
+          minPrice: parseFloat(gteMatch[1].replace(',', '.')),
+          maxPrice: null,
+          intent: detectIntent(normalized),
+          language: detectLanguage(normalized),
+        };
+      }
+
+      const priceInText = normalized.match(/(\d+(?:[.,]\d+)?)\s*(?:€|euros?)/);
+      if (priceInText) {
+        return {
+          productQuery: normalized.replace(priceInText[0], '').trim(),
+          priceOperator: null,
+          minPrice: null,
+          maxPrice: null,
+          intent: detectIntent(normalized),
+          language: detectLanguage(normalized),
+        };
+      }
+
+      return {
+        productQuery: normalized.trim(),
+        priceOperator: null,
+        minPrice: null,
+        maxPrice: null,
+        intent: detectIntent(normalized),
+        language: detectLanguage(normalized),
+      };
     }
 
-    // ── UI del xat ────────────────────────────────
+    function detectLanguage(text) {
+      if (/\b(mes|mas|menos|quiero|quieres|por favor|ensenyame|ensenyem|mostra|mostrar|vull|vols)\b/.test(text)) return 'es';
+      if (/\b(mas|m[ée]s|menys|vull|vols|ensenyame|ensenyem|mostra|mostrar|gracies)\b/.test(text)) return 'ca';
+      return 'es';
+    }
+
+    function detectIntent(text) {
+      if (/\b(compara|comparar|vs|contra|diferencia|diferència)\b/.test(text)) return 'compare';
+      if (/\b(recomienda|recomendar|recomana|recomano|recomiéndame|recomana|quiero|vull|necessito|necesito|busca|busca'm|cerca|mostra|ensenyame|enséñame)\b/.test(text)) return 'recommendation';
+      return 'search';
+    }
+
+    function findCategoryKey(text) {
+      const normalized = normalizeText(text);
+      const aliasKeys = Object.keys(ALIAS).sort((a, b) => b.length - a.length);
+      for (const alias of aliasKeys) {
+        if (normalized.includes(alias)) return ALIAS[alias];
+      }
+      let bestKey = null;
+      let bestScore = 0;
+      for (const [key, cat] of Object.entries(DB)) {
+        const label = normalizeText(cat.label);
+        const score = label.split(' ').reduce((acc, word) => acc + (word && normalized.includes(word) ? 1 : 0), 0);
+        if (score > bestScore) {
+          bestScore = score;
+          bestKey = key;
+        }
+      }
+      return bestKey;
+    }
+
+    function searchProductsByIntent(intentData) {
+      const { productQuery, priceOperator, minPrice, maxPrice, intent, language } = intentData;
+      const categoryKey = findCategoryKey(productQuery);
+      let results = [];
+      let categoryLabel = null;
+
+      if (categoryKey && DB[categoryKey]) {
+        categoryLabel = DB[categoryKey].label;
+        results = [...DB[categoryKey].options];
+      } else {
+        const queryWords = productQuery.split(/\s+/).filter(Boolean);
+        const scored = Object.entries(DB).map(([key, cat]) => {
+          const label = normalizeText(cat.label);
+          const matchCount = queryWords.reduce((sum, word) => sum + (label.includes(word) ? 1 : 0), 0);
+          const optionScore = cat.options.reduce((sum, item) => {
+            const itemText = normalizeText(`${item.name} ${item.description} ${item.badge}`);
+            return sum + queryWords.reduce((acc, word) => acc + (itemText.includes(word) ? 1 : 0), 0);
+          }, 0);
+          return { key, score: matchCount + optionScore, cat };
+        }).filter(r => r.score > 0).sort((a, b) => b.score - a.score);
+
+        if (scored.length > 0) {
+          categoryKey = scored[0].key;
+          categoryLabel = scored[0].cat.label;
+          results = [...scored[0].cat.options];
+        }
+      }
+
+      if (results.length === 0) {
+        return {
+          found: false,
+          errorMessage: `No he trobat ${productQuery || 'productes'} amb aquesta descripció. Prova amb una altra consulta o pregunta per alguna categoria com piscines, gimnàs o subscripcions.`,
+        };
+      }
+
+      const hasPriceFilter = priceOperator !== null;
+      const filtered = results.filter(item => {
+        if (priceOperator === 'gt') return item.price > minPrice;
+        if (priceOperator === 'gte') return item.price >= minPrice;
+        if (priceOperator === 'lt') return item.price < maxPrice;
+        if (priceOperator === 'lte') return item.price <= maxPrice;
+        if (priceOperator === 'between') return item.price >= minPrice && item.price <= maxPrice;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        const fallback = results.sort((a, b) => a.price - b.price)[0];
+        const label = categoryLabel || productQuery || 'productes';
+        let errorMessage = '';
+        if (priceOperator === 'gt') {
+          errorMessage = language === 'ca'
+            ? `No he trobat ${label} per més de ${minPrice}€. Vols que et mostri alternatives més barates o similars?`
+            : `No he encontrado ${label} por más de ${minPrice}€. ¿Quieres que te muestre alternativas más baratas o similares?`;
+        } else if (priceOperator === 'lt') {
+          errorMessage = language === 'ca'
+            ? `No he trobat ${label} per menys de ${maxPrice}€. Vols que et mostri alternatives similars?`
+            : `No he encontrado ${label} por menos de ${maxPrice}€. ¿Quieres que te muestre alternativas similares?`;
+        } else if (priceOperator === 'between') {
+          errorMessage = language === 'ca'
+            ? `No he trobat ${label} entre ${minPrice}€ i ${maxPrice}€. Vols que et mostri altres opcions?`
+            : `No he encontrado ${label} entre ${minPrice}€ y ${maxPrice}€. ¿Quieres que te muestre otras opciones?`;
+        } else {
+          errorMessage = language === 'ca'
+            ? `No he trobat ${label} amb aquestes condicions. Vols que et mostri opcions properes?`
+            : `No he encontrado ${label} con estas condiciones. ¿Quieres que te muestre opciones cercanas?`;
+        }
+        return {
+          found: false,
+          errorMessage,
+          category: categoryLabel,
+          options: [fallback],
+          tip: DB[categoryKey]?.tip || '',
+        };
+      }
+
+      filtered.sort((a, b) => {
+        if (intent === 'recommendation') return a.price - b.price;
+        if (priceOperator === 'gt') return a.price - b.price;
+        if (priceOperator === 'lt') return a.price - b.price;
+        return a.price - b.price;
+      });
+
+      let summary = '';
+      const label = categoryLabel || productQuery || 'productes';
+      if (priceOperator === 'gt') {
+        summary = language === 'ca'
+          ? `He trobat aquestes ${label} per més de ${minPrice}€:`
+          : `He encontrado estas ${label} por más de ${minPrice}€:`;
+      } else if (priceOperator === 'lt') {
+        summary = language === 'ca'
+          ? `He trobat aquestes ${label} per menys de ${maxPrice}€:`
+          : `He encontrado estas ${label} por menos de ${maxPrice}€:`;
+      } else if (priceOperator === 'between') {
+        summary = language === 'ca'
+          ? `He trobat aquestes ${label} entre ${minPrice}€ i ${maxPrice}€:`
+          : `He encontrado estas ${label} entre ${minPrice}€ y ${maxPrice}€:`;
+      } else if (intent === 'recommendation') {
+        summary = language === 'ca'
+          ? `Et recomano aquestes ${label}:`
+          : `Te recomiendo estas ${label}:`;
+      } else {
+        summary = language === 'ca'
+          ? `He trobat aquestes ${label}:`
+          : `He encontrado estas ${label}:`;
+      }
+
+      return {
+        found: true,
+        category: categoryLabel,
+        maxPrice,
+        minPrice,
+        priceOperator,
+        summary,
+        options: filtered,
+        tip: DB[categoryKey]?.tip || '',
+      };
+    }
+
+    function queryOffline(text) {
+      const intentData = parsePriceIntent(text);
+      return searchProductsByIntent(intentData);
+    }
+
+    function runAssessorTests() {
+      const samples = [
+        { input: 'Busco piscines per menys de 20€', expect: 'lt' },
+        { input: 'Vull gimnàs per més de 30€', expect: 'gt' },
+        { input: 'Quin pla de streaming puc pagar amb 5 euros?', expect: 'lte' },
+        { input: 'Cost de transport mensual a Barcelona', expect: 'search' },
+      ];
+      const results = samples.map(sample => {
+        const parsed = parsePriceIntent(sample.input);
+        const response = searchProductsByIntent(parsed);
+        return {
+          input: sample.input,
+          operator: parsed.priceOperator,
+          category: parsed.category || findCategoryKey(parsed.productQuery),
+          found: response.found,
+          summary: response.summary || response.errorMessage,
+        };
+      });
+      console.group('Assessor IA self-test');
+      results.forEach(result => console.log(result));
+      console.groupEnd();
+      return results;
+    }
+
+    const AI_STATE_KEY = 'smartprice_ai_state';
+
+    function getAIState() {
+      const raw = localStorage.getItem(AI_STATE_KEY);
+      if (!raw) return { folders: [], chats: [], activeFolderId: null, activeChatId: null };
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          folders: Array.isArray(parsed.folders) ? parsed.folders : [],
+          chats: Array.isArray(parsed.chats) ? parsed.chats : [],
+          activeFolderId: parsed.activeFolderId || null,
+          activeChatId: parsed.activeChatId || null,
+        };
+      } catch {
+        return { folders: [], chats: [], activeFolderId: null, activeChatId: null };
+      }
+    }
+
+    function saveAIState(state) {
+      localStorage.setItem(AI_STATE_KEY, JSON.stringify(state));
+    }
+
+    function generateId(prefix = 'id') {
+      if (window.crypto && window.crypto.randomUUID) {
+        return window.crypto.randomUUID();
+      }
+      return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    }
+
+    function dedupeById(items) {
+      const seen = new Set();
+      return items.filter(item => {
+        if (!item || !item.id) return false;
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      });
+    }
+
+    function sanitizeAIState(state) {
+      state.folders = dedupeById(state.folders || []).map(folder => ({
+        ...folder,
+        isOpen: folder.isOpen !== false,
+      }));
+      const folderIds = new Set(state.folders.map(folder => folder.id));
+      state.chats = dedupeById(state.chats || []).filter(chat => folderIds.has(chat.folderId));
+      state.folders = state.folders.length ? state.folders : [createDefaultAssessorState().folders[0]];
+      state.activeFolderId = state.activeFolderId && folderIds.has(state.activeFolderId) ? state.activeFolderId : state.folders[0]?.id;
+      const chatIds = new Set(state.chats.map(chat => chat.id));
+      state.activeChatId = state.activeChatId && chatIds.has(state.activeChatId) ? state.activeChatId : state.chats.find(chat => chat.folderId === state.activeFolderId)?.id || null;
+      if (!state.activeChatId && state.activeFolderId) {
+        const chatId = generateId('chat');
+        const newChat = { id: chatId, folderId: state.activeFolderId, title: 'Nova conversa', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), messages: [] };
+        state.chats.push(newChat);
+        state.activeChatId = chatId;
+      }
+      return state;
+    }
+
+    async function getCurrentAIUser() {
+      return await dbGetUser();
+    }
+
+    async function loadAIStateFromSupabase(userId) {
+      const [folders, chats, messages] = await Promise.all([
+        dbGetAIFolders(userId),
+        dbGetAIChats(userId),
+        dbGetAIMessages(userId),
+      ]);
+
+      const normalizedMessages = dedupeById(messages).map(msg => ({
+        id: msg.id,
+        chatId: msg.chat_id,
+        role: msg.role,
+        content: msg.content,
+        meta: msg.meta || null,
+        createdAt: msg.created_at,
+      }));
+
+      const messageGrouped = normalizedMessages.reduce((map, msg) => {
+        const list = map.get(msg.chatId) || [];
+        if (!list.some(existing => existing.id === msg.id)) {
+          list.push(msg);
+        }
+        map.set(msg.chatId, list);
+        return map;
+      }, new Map());
+
+      const sanitizedFolders = dedupeById((folders || []).map(f => ({
+        id: f.id,
+        name: f.name,
+        icon: f.icon || '📁',
+        color: f.color || 'blue',
+        position: f.position ?? 0,
+        createdAt: f.created_at,
+        updatedAt: f.updated_at,
+        isOpen: true,
+      })));
+
+      const sanitizedChats = dedupeById((chats || []).map(chat => ({
+        id: chat.id,
+        folderId: chat.folder_id,
+        title: chat.title,
+        createdAt: chat.created_at,
+        updatedAt: chat.updated_at,
+        messages: (messageGrouped.get(chat.id) || []).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
+      })));
+
+      const sortedChats = [...sanitizedChats].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+      const state = {
+        folders: sanitizedFolders,
+        chats: sanitizedChats,
+        activeFolderId: sortedChats[0]?.folderId || sanitizedFolders[0]?.id || null,
+        activeChatId: sortedChats[0]?.id || null,
+      };
+
+      if (!state.folders.length && !state.chats.length) {
+        return await createDefaultUserAIState(userId);
+      }
+
+      sanitizeAIState(state);
+      saveAIState(state);
+      return state;
+    }
+
+    async function createDefaultUserAIState(userId) {
+      const now = new Date().toISOString();
+      const folderId = generateId('folder');
+      const chatId = generateId('chat');
+
+      const folder = { id: folderId, name: 'General', icon: '📁', color: 'blue', position: 0, createdAt: now, updatedAt: now };
+      const chat = { id: chatId, folderId, title: 'Nova conversa', createdAt: now, updatedAt: now, messages: [] };
+
+      await dbCreateAIFolder({ userId, id: folderId, name: folder.name, icon: folder.icon, color: folder.color, position: folder.position, createdAt: now, updatedAt: now });
+      await dbCreateAIChat({ userId, id: chatId, folderId, title: chat.title, createdAt: now, updatedAt: now });
+
+      const state = { folders: [folder], chats: [chat], activeFolderId: folderId, activeChatId: chatId };
+      saveAIState(state);
+      return state;
+    }
+
+    async function persistFolder(folder) {
+      const user = await getCurrentAIUser();
+      if (!user) return;
+      try {
+        await dbUpsertAIFolder({
+          userId: user.id,
+          id: folder.id,
+          name: folder.name,
+          icon: folder.icon || '📁',
+          color: folder.color || 'blue',
+          position: folder.position ?? 0,
+          createdAt: folder.createdAt,
+          updatedAt: folder.updatedAt,
+        });
+      } catch (err) {
+        console.error('Error guardant carpeta AI:', err);
+        showGlobalToast('No s\'ha pogut desar la carpeta al servidor.', true);
+      }
+    }
+
+    async function persistChat(chat) {
+      const user = await getCurrentAIUser();
+      if (!user) return;
+      try {
+        await dbUpsertAIChat({ userId: user.id, id: chat.id, folderId: chat.folderId, title: chat.title, createdAt: chat.createdAt, updatedAt: chat.updatedAt });
+      } catch (err) {
+        console.error('Error guardant xat AI:', err);
+        showGlobalToast('No s\'ha pogut desar el xat al servidor.', true);
+      }
+    }
+
+    async function deleteChatFromDB(chatId) {
+      const user = await getCurrentAIUser();
+      if (!user) return;
+      try {
+        await dbDeleteAIMessages(chatId, user.id);
+        await dbDeleteAIChat(chatId, user.id);
+      } catch (err) {
+        console.error('Error eliminant xat AI:', err);
+        showGlobalToast('No s\'ha pogut eliminar el xat del servidor.', true);
+      }
+    }
+
+    async function deleteFolderFromDB(folderId, chatIds = []) {
+      const user = await getCurrentAIUser();
+      if (!user) return;
+      try {
+        for (const chatId of chatIds) {
+          await deleteChatFromDB(chatId);
+        }
+        await dbDeleteAIFolder(folderId, user.id);
+      } catch (err) {
+        console.error('Error eliminant carpeta AI:', err);
+        showGlobalToast('No s\'ha pogut eliminar la carpeta del servidor.', true);
+      }
+    }
+
+    async function persistMessage(message, chat) {
+      const user = await getCurrentAIUser();
+      if (!user) return;
+      try {
+        await dbCreateAIMessage({ userId: user.id, chatId: chat.id, role: message.role, content: message.content, meta: message.meta });
+        await dbUpdateAIChat(chat.id, { updated_at: chat.updatedAt });
+      } catch (err) {
+        console.error('Error guardant missatge AI:', err);
+        showGlobalToast('No s\'ha pogut desar el missatge al servidor.', true);
+      }
+    }
+
+    function formatRelativeDate(isoDate) {
+      if (!isoDate) return '';
+      const then = new Date(isoDate);
+      const diff = Math.floor((Date.now() - then.getTime()) / 86400000);
+      if (diff === 0) return 'avui';
+      if (diff === 1) return 'ahir';
+      if (diff < 7) return `fa ${diff} dies`;
+      return then.toLocaleDateString('ca-ES', { day: '2-digit', month: 'short' });
+    }
+
+    function generateChatTitle(text) {
+      if (!text) return 'Nova conversa';
+      const words = text.trim().split(/\s+/).slice(0, 5);
+      const title = words.join(' ');
+      return title.length > 30 ? `${title.slice(0, 30)}...` : title;
+    }
+
+    function serializeBotResult(data) {
+      return {
+        found: data.found !== false,
+        summary: data.summary || '',
+        options: Array.isArray(data.options) ? data.options.map(opt => ({
+          name: opt.name || '',
+          badge: opt.badge || '',
+          description: opt.description || '',
+          priceLabel: opt.priceLabel || '',
+          details: opt.details || '',
+        })) : [],
+        tip: data.tip || '',
+        errorMessage: data.errorMessage || '',
+        category: data.category || '',
+        maxPrice: data.maxPrice || null,
+      };
+    }
+
+    function createDefaultAssessorState() {
+      const now = new Date().toISOString();
+      const folderId = generateId('folder');
+      const chatId = generateId('chat');
+      return {
+        folders: [{ id: folderId, name: 'General', icon: '📁', color: 'blue', position: 0, createdAt: now, updatedAt: now, isOpen: true }],
+        chats: [{ id: chatId, folderId, title: 'Nova conversa', createdAt: now, updatedAt: now, messages: [] }],
+        activeFolderId: folderId,
+        activeChatId: chatId,
+      };
+    }
+
+    async function initAssessor() {
+      const user = await getCurrentAIUser();
+      if (user) {
+        try {
+          const state = await loadAIStateFromSupabase(user.id);
+          if (!state.activeChatId || !state.chats.some(c => c.id === state.activeChatId)) {
+            state.activeChatId = state.chats[state.chats.length - 1]?.id || state.chats[0]?.id;
+          }
+          saveAIState(state);
+          renderAssessorState(state);
+          return;
+        } catch (err) {
+          console.error('Error carregant AI state des de Supabase:', err);
+          showGlobalToast('No s\'ha pogut carregar les converses des del servidor.', true);
+        }
+      }
+
+      const state = getAIState();
+      if (state.folders.length === 0 || state.chats.length === 0) {
+        const fresh = createDefaultAssessorState();
+        saveAIState(fresh);
+        renderAssessorState(fresh);
+        return;
+      }
+
+      if (!state.activeFolderId || !state.folders.some(f => f.id === state.activeFolderId)) {
+        state.activeFolderId = state.activeChatId ? state.chats.find(c => c.id === state.activeChatId)?.folderId : state.folders[0]?.id;
+      }
+
+      if (!state.activeChatId || !state.chats.some(c => c.id === state.activeChatId)) {
+        const folderChats = state.chats.filter(c => c.folderId === state.activeFolderId);
+        state.activeChatId = folderChats.length > 0 ? folderChats[0].id : null;
+      }
+
+      saveAIState(state);
+      renderAssessorState(state);
+    }
+
+    function renderAssessorState(state) {
+      renderFolders(state);
+      renderActiveChatMessages(state);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function getActiveChat(state = getAIState()) {
+      return state.chats.find(c => c.id === state.activeChatId) || null;
+    }
+
+    function getActiveFolder(state = getAIState()) {
+      const folder = state.folders.find(f => f.id === state.activeFolderId);
+      if (folder) return folder;
+      const chat = getActiveChat(state);
+      return state.folders.find(f => f.id === chat?.folderId) || state.folders[0] || null;
+    }
+
+    function setActiveChat(chatId) {
+      const state = getAIState();
+      const chat = state.chats.find(c => c.id === chatId);
+      if (!chat) return;
+      state.activeChatId = chatId;
+      state.activeFolderId = chat.folderId;
+      saveAIState(state);
+      renderAssessorState(state);
+      if (window.innerWidth < 1024) {
+        const sidebar = document.getElementById('ai-sidebar');
+        if (sidebar) sidebar.classList.add('hidden');
+      }
+    }
+
+    function setActiveFolder(folderId) {
+      const state = getAIState();
+      if (!state.folders.some(f => f.id === folderId)) return;
+      const folder = state.folders.find(f => f.id === folderId);
+      if (folder) folder.isOpen = true;
+      state.activeFolderId = folderId;
+      const chatsInFolder = state.chats.filter(c => c.folderId === folderId);
+      state.activeChatId = chatsInFolder.length > 0 ? chatsInFolder.find(c => c.id === state.activeChatId)?.id || chatsInFolder[0].id : null;
+      saveAIState(state);
+      renderAssessorState(state);
+      if (window.innerWidth < 1024) {
+        const sidebar = document.getElementById('ai-sidebar');
+        if (sidebar) sidebar.classList.add('hidden');
+      }
+    }
+
+    function createFolder(name, icon = '📁', color = 'blue') {
+      const state = getAIState();
+      const now = new Date().toISOString();
+      const folderId = generateId('folder');
+      const folder = { id: folderId, name: name || 'Nova carpeta', icon, color, position: state.folders.length, createdAt: now, updatedAt: now, isOpen: true };
+      state.folders.push(folder);
+      state.activeFolderId = folderId;
+      const chatId = generateId('chat');
+      const chat = { id: chatId, folderId, title: 'Nova conversa', createdAt: now, updatedAt: now, messages: [] };
+      state.chats.push(chat);
+      state.activeChatId = chatId;
+      sanitizeAIState(state);
+      saveAIState(state);
+      renderAssessorState(state);
+      persistFolder(folder);
+      persistChat(chat);
+      return folderId;
+    }
+
+    function renameFolder(folderId, name) {
+      const state = getAIState();
+      const folder = state.folders.find(f => f.id === folderId);
+      if (!folder) return;
+      folder.name = name || folder.name;
+      folder.updatedAt = new Date().toISOString();
+      saveAIState(state);
+      renderFolders(state);
+      showGlobalToast('Carpeta renombrada');
+      persistFolder(folder);
+    }
+
+    function deleteFolder(folderId) {
+      const state = getAIState();
+      if (state.folders.length <= 1) {
+        showGlobalToast('No es pot eliminar l\'única carpeta.', true);
+        return;
+      }
+      const folderChats = state.chats.filter(c => c.folderId === folderId);
+      state.folders = state.folders.filter(f => f.id !== folderId);
+      state.chats = state.chats.filter(c => c.folderId !== folderId);
+      if (!state.chats.some(c => c.id === state.activeChatId)) {
+        const sameFolderChats = state.chats.filter(c => c.folderId === state.activeFolderId);
+        if (sameFolderChats.length > 0) {
+          state.activeChatId = sameFolderChats[0].id;
+        } else {
+          const nextFolder = state.folders[0];
+          state.activeFolderId = nextFolder?.id || null;
+          state.activeChatId = nextFolder ? state.chats.find(c => c.folderId === nextFolder.id)?.id : null;
+        }
+      }
+      sanitizeAIState(state);
+      saveAIState(state);
+      renderAssessorState(state);
+      showGlobalToast('Carpeta eliminada');
+      deleteFolderFromDB(folderId, folderChats.map(chat => chat.id));
+    }
+
+    function createChat(folderId, title) {
+      const state = getAIState();
+      const targetFolder = state.folders.find(f => f.id === folderId) || state.folders[0];
+      if (!targetFolder) {
+        const newFolderId = createFolder('General');
+        return createChat(newFolderId, title);
+      }
+      const now = new Date().toISOString();
+      const chatId = generateId('chat');
+      const chat = { id: chatId, folderId: targetFolder.id, title: title || 'Nova conversa', createdAt: now, updatedAt: now, messages: [] };
+      state.chats.push(chat);
+      state.activeChatId = chatId;
+      state.activeFolderId = targetFolder.id;
+      sanitizeAIState(state);
+      saveAIState(state);
+      renderAssessorState(state);
+      persistChat(chat);
+      return chatId;
+    }
+
+    function renameChat(chatId, title) {
+      const state = getAIState();
+      const chat = state.chats.find(c => c.id === chatId);
+      if (!chat) return;
+      chat.title = title || chat.title;
+      chat.updatedAt = new Date().toISOString();
+      saveAIState(state);
+      renderFolders(state);
+      renderActiveChatMessages(state);
+      showGlobalToast('Xat renombrat');
+      persistChat(chat);
+    }
+
+    function duplicateChat(chatId) {
+      const state = getAIState();
+      const original = state.chats.find(c => c.id === chatId);
+      if (!original) return;
+      const now = new Date().toISOString();
+      const newChatId = generateId('chat');
+      const duplicated = {
+        id: newChatId,
+        folderId: original.folderId,
+        title: `${original.title} (còpia)`,
+        createdAt: now,
+        updatedAt: now,
+        messages: original.messages.map(msg => ({ ...msg, id: generateId('msg'), createdAt: now })),
+      };
+      state.chats.push(duplicated);
+      state.activeChatId = newChatId;
+      state.activeFolderId = original.folderId;
+      saveAIState(state);
+      renderAssessorState(state);
+      persistChat(duplicated);
+      duplicated.messages.forEach(msg => persistMessage(msg, duplicated));
+      showGlobalToast('Xat duplicat');
+    }
+
+    function duplicateActiveChat() {
+      const state = getAIState();
+      if (!state.activeChatId) return;
+      duplicateChat(state.activeChatId);
+    }
+
+    function moveChatToFolder(chatId, targetFolderId) {
+      const state = getAIState();
+      const chat = state.chats.find(c => c.id === chatId);
+      if (!chat || chat.folderId === targetFolderId) return;
+      const targetFolder = state.folders.find(f => f.id === targetFolderId);
+      if (!targetFolder) return;
+      chat.folderId = targetFolder.id;
+      chat.updatedAt = new Date().toISOString();
+      state.activeFolderId = targetFolder.id;
+      state.activeChatId = chat.id;
+      saveAIState(state);
+      renderAssessorState(state);
+      persistChat(chat);
+      showGlobalToast('Xat mogut a carpeta');
+    }
+
+    function moveChatPrompt(chatId) {
+      const state = getAIState();
+      const chat = state.chats.find(c => c.id === chatId);
+      if (!chat) return;
+      const otherFolders = state.folders.filter(f => f.id !== chat.folderId);
+      if (!otherFolders.length) {
+        showGlobalToast('No hi ha cap altra carpeta on moure aquest xat.', true);
+        return;
+      }
+      const root = document.getElementById('ai-modal-root');
+      if (!root) return;
+      closeAIModal();
+      root.classList.remove('hidden');
+      root.innerHTML = `
+        <div class="ai-modal-card bg-white rounded-3xl shadow-2xl ring-1 ring-slate-200 w-full max-w-xl mx-auto overflow-hidden">
+          <div class="px-6 py-6 border-b border-slate-200">
+            <p class="font-display font-800 text-xl text-ink mb-1">Moure xat</p>
+            <p class="font-body text-sm text-ink-muted">Tria la carpeta on vols ubicar aquest xat.</p>
+          </div>
+          <div class="px-6 py-5 bg-surface space-y-3">
+            ${otherFolders.map(folder => `
+              <button type="button" class="w-full rounded-3xl border border-ink-muted/10 bg-white px-4 py-4 text-left text-sm text-ink hover:border-brand-300" onclick="moveChatToFolder('${chatId}', '${folder.id}');closeAIModal();">
+                <div class="flex items-center justify-between gap-3">
+                  <span>${escapeHtml(folder.name)}</span>
+                  <span class="text-ink-muted text-xs">${state.chats.filter(c => c.folderId === folder.id).length} xat${state.chats.filter(c => c.folderId === folder.id).length === 1 ? '' : 's'}</span>
+                </div>
+              </button>`).join('')}
+          </div>
+          <div class="px-6 py-5 bg-white flex justify-end">
+            <button id="ai-modal-cancel" class="rounded-2xl border border-ink-muted/15 bg-surface px-4 py-3 text-sm font-semibold text-ink-muted hover:border-brand-300">Cancel·la</button>
+          </div>
+        </div>`;
+      setTimeout(() => root.classList.add('ai-modal-visible'), 10);
+      const cancelBtn = document.getElementById('ai-modal-cancel');
+      if (cancelBtn) cancelBtn.onclick = closeAIModal;
+      _aiModalKeyHandler = event => {
+        if (event.key === 'Escape') closeAIModal();
+      };
+      document.addEventListener('keydown', _aiModalKeyHandler);
+    }
+
+    function exportActiveChat() {
+      const state = getAIState();
+      const chat = getActiveChat(state);
+      if (!chat) {
+        showGlobalToast('No hi ha cap xat actiu per exportar.', true);
+        return;
+      }
+      const data = {
+        id: chat.id,
+        title: chat.title,
+        folder: state.folders.find(f => f.id === chat.folderId)?.name || 'General',
+        messages: chat.messages,
+      };
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+      a.download = `${chat.title.replace(/[^a-z0-9-_]/gi, '_')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showGlobalToast('Xat exportat');
+    }
+
+    function deleteChat(chatId) {
+      const state = getAIState();
+      const chatIndex = state.chats.findIndex(c => c.id === chatId);
+      if (chatIndex === -1) return;
+      const deletedChat = state.chats.splice(chatIndex, 1)[0];
+      if (state.activeChatId === chatId) {
+        const sameFolderChats = state.chats.filter(c => c.folderId === deletedChat.folderId);
+        if (sameFolderChats.length > 0) {
+          state.activeChatId = sameFolderChats[0].id;
+          state.activeFolderId = deletedChat.folderId;
+        } else {
+          const nextFolder = state.folders.find(f => f.id !== deletedChat.folderId) || state.folders[0];
+          state.activeFolderId = nextFolder?.id || null;
+          state.activeChatId = state.chats.find(c => c.folderId === state.activeFolderId)?.id || null;
+        }
+      }
+      sanitizeAIState(state);
+      saveAIState(state);
+      renderAssessorState(state);
+      showGlobalToast('Xat eliminat');
+      deleteChatFromDB(chatId);
+    }
+
+    function saveMessageToActiveChat(role, content, meta) {
+      const state = getAIState();
+      const chat = getActiveChat(state);
+      if (!chat) return;
+      const message = {
+        id: generateId('msg'),
+        role,
+        content: content || '',
+        createdAt: new Date().toISOString(),
+        meta: meta || null,
+      };
+      chat.messages.push(message);
+      chat.updatedAt = new Date().toISOString();
+      if (role === 'user' && chat.title === 'Nova conversa') {
+        chat.title = generateChatTitle(content);
+      }
+      saveAIState(state);
+      renderFolders(state);
+      updateAssessorHeader(state);
+      persistMessage(message, chat);
+      persistChat(chat);
+      return message;
+    }
+
+    function getFolderAccentClasses(color) {
+      const accents = {
+        blue: { ring: 'ring-blue-100', bg: 'bg-blue-50', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-700' },
+        green: { ring: 'ring-emerald-100', bg: 'bg-emerald-50', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700' },
+        orange: { ring: 'ring-orange-100', bg: 'bg-orange-50', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' },
+        purple: { ring: 'ring-violet-100', bg: 'bg-violet-50', text: 'text-violet-700', badge: 'bg-violet-100 text-violet-700' },
+        pink: { ring: 'ring-pink-100', bg: 'bg-pink-50', text: 'text-pink-700', badge: 'bg-pink-100 text-pink-700' },
+        red: { ring: 'ring-rose-100', bg: 'bg-rose-50', text: 'text-rose-700', badge: 'bg-rose-100 text-rose-700' },
+        gray: { ring: 'ring-slate-100', bg: 'bg-slate-50', text: 'text-slate-700', badge: 'bg-slate-100 text-slate-700' },
+      };
+      return accents[color] || accents.blue;
+    }
+
+    function toggleFolderExpansion(folderId) {
+      const state = getAIState();
+      const folder = state.folders.find(f => f.id === folderId);
+      if (!folder) return;
+      folder.isOpen = folder.isOpen !== false ? false : true;
+      saveAIState(state);
+      renderAssessorState(state);
+    }
+
+    function renderFolders(state) {
+      const folderList = document.getElementById('ai-folder-list');
+      if (!folderList) return;
+      const activeFolder = getActiveFolder(state);
+      folderList.innerHTML = '';
+      state.folders.forEach(folder => {
+        const chatsInFolder = state.chats.filter(c => c.folderId === folder.id).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        const active = folder.id === activeFolder?.id;
+        const accent = getFolderAccentClasses(folder.color || 'blue');
+        const isOpen = folder.isOpen !== false;
+        const chatItems = chatsInFolder.length === 0
+          ? `<div class="rounded-3xl border border-ink-muted/10 bg-slate-50 px-4 py-5 text-center text-sm text-ink-muted">Aquesta carpeta encara no té xats. Crea un de nou per començar.</div>`
+          : chatsInFolder.map(chat => {
+              const chatActive = chat.id === state.activeChatId;
+              return `
+                <div class="rounded-3xl border ${chatActive ? 'border-brand-300 bg-brand-50 shadow-sm' : 'border-transparent bg-white hover:border-slate-200'} overflow-hidden">
+                  <button type="button" onclick="setActiveChat('${chat.id}')" class="w-full text-left px-4 py-3 text-sm text-ink transition flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                      <p class="font-display font-700 truncate">${escapeHtml(chat.title)}</p>
+                      <p class="font-body text-xs text-ink-muted mt-1">${chat.messages.length} missatge${chat.messages.length === 1 ? '' : 's'}</p>
+                    </div>
+                    <span class="font-body text-[11px] text-ink-muted">${formatRelativeDate(chat.updatedAt)}</span>
+                  </button>
+                  <div class="flex items-center justify-end gap-2 px-3 pb-3">
+                    <button type="button" onclick="duplicateChat('${chat.id}'); event.stopPropagation()" class="rounded-full border border-ink-muted/10 bg-white p-2 text-xs text-ink-muted hover:border-brand-300">⎘</button>
+                    <button type="button" onclick="moveChatPrompt('${chat.id}'); event.stopPropagation()" class="rounded-full border border-ink-muted/10 bg-white p-2 text-xs text-ink-muted hover:border-brand-300">⇄</button>
+                    <button type="button" onclick="renameChatPrompt('${chat.id}'); event.stopPropagation()" class="rounded-full border border-ink-muted/10 bg-white p-2 text-xs text-ink-muted hover:border-brand-300">✎</button>
+                    <button type="button" onclick="deleteChatPrompt('${chat.id}'); event.stopPropagation()" class="rounded-full border border-ink-muted/10 bg-white p-2 text-xs text-ink-muted hover:text-red-600">🗑</button>
+                  </div>
+                </div>`;
+            }).join('');
+
+        folderList.innerHTML += `
+          <div class="rounded-3xl border ${active ? 'border-slate-300 bg-slate-50 shadow-sm' : 'border-ink-muted/10 bg-white hover:border-slate-200'} transition overflow-hidden">
+            <div class="flex items-center justify-between gap-3 px-4 py-4 cursor-pointer" onclick="setActiveFolder('${folder.id}')">
+              <div class="flex items-center gap-3">
+                <span class="flex h-11 w-11 items-center justify-center rounded-2xl ${accent.bg} ${accent.text} ring-1 ring-inset ${accent.ring} text-lg">${escapeHtml(folder.icon || '📁')}</span>
+                <div class="min-w-0">
+                  <p class="font-display font-700 text-sm text-ink truncate">${escapeHtml(folder.name)}</p>
+                  <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+                    <span>${chatsInFolder.length} xat${chatsInFolder.length === 1 ? '' : 's'}</span>
+                    <span class="rounded-full px-2 py-0.5 ${accent.badge} lowercase">${escapeHtml(folder.color || 'blue')}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="toggleFolderExpansion('${folder.id}'); event.stopPropagation()" class="rounded-full border border-ink-muted/10 bg-white p-2 text-xs text-ink-muted hover:border-brand-300">${isOpen ? '▾' : '▸'}</button>
+                <button type="button" onclick="createChatPrompt('${folder.id}'); event.stopPropagation()" class="rounded-2xl border border-ink-muted/10 bg-surface px-3 py-2 text-xs font-semibold text-ink-muted hover:border-brand-300">+ Xat</button>
+              </div>
+            </div>
+            <div class="px-4 ${isOpen ? 'block' : 'hidden'} pb-4 space-y-3">
+              ${chatItems}
+            </div>
+            <div class="flex items-center justify-end gap-1 px-3 pb-3">
+              <button type="button" onclick="renameFolderPrompt('${folder.id}');event.stopPropagation()" class="rounded-full border border-ink-muted/10 bg-white p-2 text-xs text-ink-muted hover:text-brand-600">✎</button>
+              <button type="button" onclick="deleteFolderPrompt('${folder.id}');event.stopPropagation()" class="rounded-full border border-ink-muted/10 bg-white p-2 text-xs text-ink-muted hover:text-red-600">🗑</button>
+            </div>
+          </div>`;
+      });
+    }
+
+    function renderWelcomeMessage() {
+      return `
+        <div class="flex gap-3" id="msg-welcome">
+          <div class="w-7 h-7 rounded-full bg-brand-100 flex-shrink-0 flex items-center justify-center mt-0.5">
+            <i data-lucide="bot" class="w-3 h-3 text-brand-600"></i>
+          </div>
+          <div class="flex flex-col gap-2 max-w-sm">
+            <div class="chat-bubble-in px-4 py-3">
+              <p class="font-body text-sm text-ink leading-relaxed">
+                Hola! 👋 Soc el teu assessor de pressupost. Escriu-me una petició com ara:
+              </p>
+              <ul class="mt-2 space-y-1">
+                <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Busca'm gimnasos per menys de 30€/mes"</em></li>
+                <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Plataformes de streaming per menys de 10€"</em></li>
+                <li class="font-body text-xs text-ink-muted flex items-start gap-1.5"><span class="text-brand-500 mt-0.5">›</span> <em>"Transport públic mensual a Barcelona"</em></li>
+              </ul>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderActiveChatMessages(state) {
+      const container = document.getElementById('chat-messages');
+      if (!container) return;
+      container.innerHTML = '';
+      const chat = getActiveChat(state);
+      if (!chat || chat.messages.length === 0) {
+        container.innerHTML = renderWelcomeMessage();
+        document.getElementById('chat-chips').style.display = 'flex';
+        updateAssessorHeader(state);
+        return;
+      }
+      document.getElementById('chat-chips').style.display = 'none';
+      chat.messages.forEach(renderStoredMessage);
+      updateAssessorHeader(state);
+    }
+
+    function renderStoredMessage(message) {
+      if (message.role === 'user') {
+        const container = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = 'flex gap-3 justify-end';
+        div.innerHTML = `
+          <div class="chat-bubble-out px-4 py-3 max-w-xs">
+            <p class="font-body text-sm text-white leading-relaxed">${escapeHtml(message.content)}</p>
+          </div>`;
+        container.appendChild(div);
+        return;
+      }
+      if (message.meta?.found === false) {
+        appendErrorMessage(message.meta);
+        return;
+      }
+      appendBotResponse(message.meta || { summary: message.content || '', options: [], tip: '' });
+    }
+
+    function updateAssessorHeader(state) {
+      const chat = getActiveChat(state);
+      const titleEl = document.getElementById('ai-active-chat-title');
+      const metaEl = document.getElementById('ai-active-chat-meta');
+      const folderNameEl = document.getElementById('ai-active-folder-name');
+      const folderMetaEl = document.getElementById('ai-active-folder-meta');
+      const folderCountEl = document.getElementById('ai-folder-chat-count');
+      const syncStatusEl = document.getElementById('ai-sync-status');
+      const folder = getActiveFolder(state);
+      const messageCount = chat ? chat.messages.length : 0;
+
+      if (titleEl) titleEl.textContent = chat ? chat.title : 'Assessor IA';
+      if (metaEl) metaEl.textContent = chat
+        ? `${messageCount} missatge${messageCount === 1 ? '' : 's'} · actualitzat ${formatRelativeDate(chat.updatedAt)}`
+        : 'Selecciona un xat o crea’n un de nou per començar.';
+      if (folderNameEl) folderNameEl.textContent = folder ? folder.name : 'General';
+      if (folderMetaEl) folderMetaEl.textContent = folder
+        ? `${state.chats.filter(c => c.folderId === folder.id).length} xat${state.chats.filter(c => c.folderId === folder.id).length === 1 ? '' : 's'} · carpeta activa`
+        : 'Selecciona una carpeta.';
+      if (folderCountEl) folderCountEl.textContent = folder
+        ? `${state.chats.filter(c => c.folderId === folder.id).length} xat${state.chats.filter(c => c.folderId === folder.id).length === 1 ? '' : 's'} en aquesta carpeta.`
+        : 'Cap xat disponible.';
+      if (syncStatusEl) syncStatusEl.textContent = 'Sincronitzat';
+    }
+
+    let _aiModalKeyHandler = null;
+
+    function closeAIModal() {
+      const root = document.getElementById('ai-modal-root');
+      if (!root || root.classList.contains('hidden')) return;
+      root.classList.remove('ai-modal-visible');
+      document.removeEventListener('keydown', _aiModalKeyHandler);
+      _aiModalKeyHandler = null;
+      root.addEventListener('transitionend', () => {
+        if (!root.classList.contains('ai-modal-visible')) {
+          root.classList.add('hidden');
+          root.innerHTML = '';
+        }
+      }, { once: true });
+    }
+
+    function openTextModal({ title, description, placeholder = '', defaultValue = '', confirmText = 'Guardar', cancelText = 'Cancel·la', danger = false, multiline = false, validate, onConfirm }) {
+      const root = document.getElementById('ai-modal-root');
+      if (!root) return;
+      closeAIModal();
+      root.classList.remove('hidden');
+      root.innerHTML = `
+        <div class="ai-modal-card bg-white rounded-3xl shadow-2xl ring-1 ring-slate-200 w-full max-w-xl mx-auto overflow-hidden">
+          <div class="px-6 py-6 border-b border-slate-200">
+            <p class="font-display font-800 text-xl text-ink mb-1">${escapeHtml(title)}</p>
+            <p class="font-body text-sm text-ink-muted">${escapeHtml(description)}</p>
+          </div>
+          <div class="px-6 py-5 bg-surface">
+            ${multiline
+              ? `<textarea id="ai-modal-input" class="w-full min-h-[140px] rounded-3xl border border-ink-muted/10 bg-white p-4 text-sm text-ink focus:outline-none focus:border-brand-300" placeholder="${escapeHtml(placeholder)}">${escapeHtml(defaultValue)}</textarea>`
+              : `<input id="ai-modal-input" type="text" value="${escapeHtml(defaultValue)}" placeholder="${escapeHtml(placeholder)}" class="w-full rounded-3xl border border-ink-muted/10 bg-white px-4 py-3 text-sm text-ink focus:outline-none focus:border-brand-300" />`}
+            <p id="ai-modal-error" class="mt-3 text-sm text-red-600 min-h-[1.25rem]"></p>
+          </div>
+          <div class="px-6 py-5 bg-white flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3">
+            <button id="ai-modal-cancel" class="w-full sm:w-auto rounded-2xl border border-ink-muted/15 bg-surface px-4 py-3 text-sm font-semibold text-ink-muted hover:border-brand-300">${escapeHtml(cancelText)}</button>
+            <button id="ai-modal-confirm" class="w-full sm:w-auto rounded-2xl px-4 py-3 text-sm font-semibold ${danger ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-brand-600 text-white hover:bg-brand-700'}">${escapeHtml(confirmText)}</button>
+          </div>
+        </div>`;
+
+      const input = document.getElementById('ai-modal-input');
+      const error = document.getElementById('ai-modal-error');
+      const cancelBtn = document.getElementById('ai-modal-cancel');
+      const confirmBtn = document.getElementById('ai-modal-confirm');
+      setTimeout(() => root.classList.add('ai-modal-visible'), 10);
+      if (!input || !cancelBtn || !confirmBtn) return;
+
+      function validateAndConfirm() {
+        const value = input.value;
+        const validationError = validate ? validate(value) : !value.trim() ? 'Aquest camp no pot estar buit.' : null;
+        if (validationError) {
+          error.textContent = validationError;
+          return;
+        }
+        closeAIModal();
+        onConfirm(value.trim());
+      }
+
+      cancelBtn.onclick = closeAIModal;
+      confirmBtn.onclick = validateAndConfirm;
+      root.onclick = event => { if (event.target === root) closeAIModal(); };
+
+      _aiModalKeyHandler = event => {
+        if (event.key === 'Escape') {
+          closeAIModal();
+        }
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          validateAndConfirm();
+        }
+      };
+
+      document.addEventListener('keydown', _aiModalKeyHandler);
+      input.focus();
+    }
+
+    function openConfirmModal({ title, description, confirmText = 'Confirmar', cancelText = 'Cancel·la', danger = false, onConfirm }) {
+      const root = document.getElementById('ai-modal-root');
+      if (!root) return;
+      closeAIModal();
+      root.classList.remove('hidden');
+      root.innerHTML = `
+        <div class="ai-modal-card bg-white rounded-3xl shadow-2xl ring-1 ring-slate-200 w-full max-w-lg mx-auto overflow-hidden">
+          <div class="px-6 py-6 border-b border-slate-200">
+            <p class="font-display font-800 text-xl text-ink mb-1">${escapeHtml(title)}</p>
+            <p class="font-body text-sm text-ink-muted">${escapeHtml(description)}</p>
+          </div>
+          <div class="px-6 py-5 bg-white flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3">
+            <button id="ai-modal-cancel" class="w-full sm:w-auto rounded-2xl border border-ink-muted/15 bg-surface px-4 py-3 text-sm font-semibold text-ink-muted hover:border-brand-300">${escapeHtml(cancelText)}</button>
+            <button id="ai-modal-confirm" class="w-full sm:w-auto rounded-2xl px-4 py-3 text-sm font-semibold ${danger ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-brand-600 text-white hover:bg-brand-700'}">${escapeHtml(confirmText)}</button>
+          </div>
+        </div>`;
+
+      const cancelBtn = document.getElementById('ai-modal-cancel');
+      const confirmBtn = document.getElementById('ai-modal-confirm');
+      if (!cancelBtn || !confirmBtn) return;
+      setTimeout(() => root.classList.add('ai-modal-visible'), 10);
+
+      cancelBtn.onclick = closeAIModal;
+      confirmBtn.onclick = () => { closeAIModal(); onConfirm(); };
+      root.onclick = event => { if (event.target === root) closeAIModal(); };
+
+      _aiModalKeyHandler = event => {
+        if (event.key === 'Escape') closeAIModal();
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          closeAIModal();
+          onConfirm();
+        }
+      };
+      document.addEventListener('keydown', _aiModalKeyHandler);
+    }
+
+    function toggleAssessorSidebar(visible = null) {
+      const sidebar = document.getElementById('ai-sidebar');
+      if (!sidebar) return;
+      if (visible === true) sidebar.classList.remove('hidden');
+      else if (visible === false) sidebar.classList.add('hidden');
+      else sidebar.classList.toggle('hidden');
+    }
+
+    function openFolderModal({ title, description, folder = null, confirmText = 'Guardar', onConfirm }) {
+      const root = document.getElementById('ai-modal-root');
+      if (!root) return;
+      closeAIModal();
+      root.classList.remove('hidden');
+      const colors = ['blue', 'green', 'orange', 'purple', 'pink', 'red', 'gray'];
+      const iconOptions = ['📁', '💼', '🧩', '🚀', '📊', '🗂️', '✨'];
+      const defaultName = folder?.name || 'Nova carpeta';
+      const defaultIcon = folder?.icon || '📁';
+      const defaultColor = folder?.color || 'blue';
+      root.innerHTML = `
+        <div class="ai-modal-card bg-white rounded-3xl shadow-2xl ring-1 ring-slate-200 w-full max-w-xl mx-auto overflow-hidden">
+          <div class="px-6 py-6 border-b border-slate-200">
+            <p class="font-display font-800 text-xl text-ink mb-1">${escapeHtml(title)}</p>
+            <p class="font-body text-sm text-ink-muted">${escapeHtml(description)}</p>
+          </div>
+          <div class="px-6 py-5 bg-surface space-y-5">
+            <div>
+              <label class="font-display font-700 text-sm text-ink mb-2 block">Nom</label>
+              <input id="ai-folder-name" type="text" value="${escapeHtml(defaultName)}" class="w-full rounded-3xl border border-ink-muted/10 bg-white px-4 py-3 text-sm text-ink focus:outline-none focus:border-brand-300" />
+            </div>
+            <div>
+              <p class="font-display font-700 text-sm text-ink mb-3">Icona</p>
+              <div class="grid grid-cols-7 gap-3">
+                ${iconOptions.map(icon => `
+                  <button type="button" data-icon="${escapeHtml(icon)}" class="folder-icon-choice rounded-2xl border border-ink-muted/10 bg-white px-3 py-3 text-lg transition ${icon === defaultIcon ? 'border-brand-500 bg-brand-50 shadow-sm' : 'hover:border-slate-300'}">${escapeHtml(icon)}</button>
+                `).join('')}
+              </div>
+            </div>
+            <div>
+              <p class="font-display font-700 text-sm text-ink mb-3">Color</p>
+              <div class="grid grid-cols-7 gap-3">
+                ${colors.map(color => `
+                  <button type="button" data-color="${color}" class="folder-color-choice rounded-2xl border border-ink-muted/10 px-3 py-3 transition ${color === defaultColor ? 'ring-2 ring-offset-2 ring-brand-500' : 'hover:border-slate-400'} ${color === 'blue' ? 'bg-blue-100' : color === 'green' ? 'bg-emerald-100' : color === 'orange' ? 'bg-orange-100' : color === 'purple' ? 'bg-violet-100' : color === 'pink' ? 'bg-pink-100' : color === 'red' ? 'bg-rose-100' : 'bg-slate-200'}"></button>
+                `).join('')}
+              </div>
+            </div>
+            <p id="ai-folder-error" class="text-sm text-red-600 min-h-[1.25rem]"></p>
+          </div>
+          <div class="px-6 py-5 bg-white flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3">
+            <button id="ai-modal-cancel" class="w-full sm:w-auto rounded-2xl border border-ink-muted/15 bg-surface px-4 py-3 text-sm font-semibold text-ink-muted hover:border-brand-300">Cancel·la</button>
+            <button id="ai-modal-confirm" class="w-full sm:w-auto rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700">${escapeHtml(confirmText)}</button>
+          </div>
+        </div>`;
+
+      const nameInput = document.getElementById('ai-folder-name');
+      const iconButtons = Array.from(root.querySelectorAll('.folder-icon-choice'));
+      const colorButtons = Array.from(root.querySelectorAll('.folder-color-choice'));
+      const errorEl = document.getElementById('ai-folder-error');
+      const cancelBtn = document.getElementById('ai-modal-cancel');
+      const confirmBtn = document.getElementById('ai-modal-confirm');
+      let selectedIcon = defaultIcon;
+      let selectedColor = defaultColor;
+
+      iconButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          selectedIcon = button.dataset.icon;
+          iconButtons.forEach(btn => btn.classList.remove('border-brand-500', 'bg-brand-50', 'shadow-sm'));
+          button.classList.add('border-brand-500', 'bg-brand-50', 'shadow-sm');
+        });
+      });
+      colorButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          selectedColor = button.dataset.color;
+          colorButtons.forEach(btn => btn.classList.remove('ring-2', 'ring-offset-2', 'ring-brand-500'));
+          button.classList.add('ring-2', 'ring-offset-2', 'ring-brand-500');
+        });
+      });
+
+      setTimeout(() => root.classList.add('ai-modal-visible'), 10);
+      cancelBtn.onclick = closeAIModal;
+      confirmBtn.onclick = () => {
+        const name = nameInput.value.trim();
+        if (!name) {
+          if (errorEl) errorEl.textContent = 'El nom no pot estar buit.';
+          return;
+        }
+        closeAIModal();
+        onConfirm(name, selectedIcon, selectedColor);
+      };
+      root.onclick = event => { if (event.target === root) closeAIModal(); };
+
+      _aiModalKeyHandler = event => {
+        if (event.key === 'Escape') closeAIModal();
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          confirmBtn.click();
+        }
+      };
+      document.addEventListener('keydown', _aiModalKeyHandler);
+      nameInput.focus();
+    }
+
+    function createFolderPrompt() {
+      openFolderModal({
+        title: 'Nova carpeta',
+        description: 'Configura la teva nova carpeta amb icona i color.',
+        confirmText: 'Crear carpeta',
+        onConfirm: (name, icon, color) => createFolder(name, icon, color),
+      });
+    }
+
+    function renameFolderPrompt(folderId) {
+      const state = getAIState();
+      const folder = state.folders.find(f => f.id === folderId) || getActiveFolder(state);
+      if (!folder) return;
+      openFolderModal({
+        title: 'Editar carpeta',
+        description: 'Canvia el nom, l\'icona o el color de la carpeta.',
+        folder,
+        confirmText: 'Guardar',
+        onConfirm: (name, icon, color) => {
+          renameFolder(folder.id, name);
+          folder.icon = icon;
+          folder.color = color;
+          folder.updatedAt = new Date().toISOString();
+          saveAIState(state);
+          renderAssessorState(state);
+          persistFolder(folder);
+        },
+      });
+    }
+
+    function deleteFolderPrompt(folderId) {
+      const state = getAIState();
+      const folder = state.folders.find(f => f.id === folderId);
+      if (!folder) return;
+      openConfirmModal({
+        title: 'Eliminar carpeta',
+        description: `Segur que vols eliminar la carpeta "${escapeHtml(folder.name)}" i tots els seus xats?`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancel·la',
+        danger: true,
+        onConfirm: () => deleteFolder(folderId),
+      });
+    }
+
+    function createChatPrompt(folderId = null) {
+      const state = getAIState();
+      const targetFolderId = folderId || getActiveFolder(state)?.id || state.folders[0]?.id;
+      if (!targetFolderId) return;
+      openTextModal({
+        title: 'Nou xat',
+        description: 'Dóna un nom a la nova conversa.',
+        placeholder: 'Nova conversa',
+        defaultValue: 'Nova conversa',
+        confirmText: 'Crear xat',
+        onConfirm: title => createChat(targetFolderId, title),
+      });
+    }
+
+    function renameChatPrompt(chatId) {
+      const state = getAIState();
+      const chat = state.chats.find(c => c.id === chatId) || getActiveChat(state);
+      if (!chat) return;
+      openTextModal({
+        title: 'Renombra xat',
+        description: 'Escriu el nou nom del xat.',
+        placeholder: 'Nom del xat',
+        defaultValue: chat.title,
+        confirmText: 'Renombrar',
+        onConfirm: title => renameChat(chat.id, title),
+      });
+    }
+
+    function deleteChatPrompt(chatId) {
+      const state = getAIState();
+      const chat = state.chats.find(c => c.id === chatId) || getActiveChat(state);
+      if (!chat) return;
+      openConfirmModal({
+        title: 'Eliminar xat',
+        description: `Segur que vols eliminar el xat "${escapeHtml(chat.title)}"?`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancel·la',
+        danger: true,
+        onConfirm: () => deleteChat(chat.id),
+      });
+    }
+
+    function exportAIState() {
+      const state = getAIState();
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'smartprice_ai_state.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showGlobalToast('Converses exportades');
+    }
+
+    function importAIState() {
+      openTextModal({
+        title: 'Importa converses',
+        description: 'Enganxa el JSON de les converses per importar.',
+        placeholder: '{ "folders": [...], "chats": [...] }',
+        multiline: true,
+        confirmText: 'Importar',
+        validate: value => {
+          if (!value.trim()) return 'El JSON no pot estar buit.';
+          try {
+            const parsed = JSON.parse(value);
+            if (!parsed || !Array.isArray(parsed.folders) || !Array.isArray(parsed.chats)) throw new Error('invalid');
+            return null;
+          } catch {
+            return 'JSON no vàlid. Revisa la sintaxi.';
+          }
+        },
+        onConfirm: value => {
+          const parsed = JSON.parse(value);
+          saveAIState(parsed);
+          initAssessor();
+          showGlobalToast('Converses importades');
+        },
+      });
+    }
+
     let assessorLoading = false;
 
     function autoResizeTextarea(el) {
@@ -1040,13 +2300,25 @@
     }
 
     function clearChat() {
-      const container = document.getElementById('chat-messages');
-      const welcome = document.getElementById('msg-welcome');
-      container.innerHTML = '';
-      if (welcome) container.appendChild(welcome);
-      document.getElementById('chat-chips').style.display = 'flex';
-      document.getElementById('chat-input').value = '';
-      autoResizeTextarea(document.getElementById('chat-input'));
+      const state = getAIState();
+      const chat = getActiveChat(state);
+      if (!chat) return;
+      openConfirmModal({
+        title: 'Neteja xat',
+        description: 'Segur que vols esborrar tots els missatges d\'aquest xat?',
+        confirmText: 'Netejar',
+        cancelText: 'Cancel·la',
+        danger: true,
+        onConfirm: () => {
+          chat.messages = [];
+          chat.updatedAt = new Date().toISOString();
+          saveAIState(state);
+          renderActiveChatMessages(state);
+          document.getElementById('chat-input').value = '';
+          autoResizeTextarea(document.getElementById('chat-input'));
+          showGlobalToast('Xat netejat');
+        }
+      });
     }
 
     function sendMessage() {
@@ -1056,20 +2328,23 @@
 
       document.getElementById('chat-chips').style.display = 'none';
       appendUserMessage(text);
+      saveMessageToActiveChat('user', text, null);
       input.value = '';
       autoResizeTextarea(input);
       assessorLoading = true;
       setInputDisabled(true);
 
-      // Simula un petit delay per sensació de processament
       const loadingId = appendLoadingMessage();
       setTimeout(() => {
         removeLoadingMessage(loadingId);
         const result = queryOffline(text);
-        if (result.found === false) {
-          appendErrorMessage(result);
+        const payload = serializeBotResult(result);
+        if (payload.found === false) {
+          appendErrorMessage(payload);
+          saveMessageToActiveChat('assistant', payload.errorMessage, payload);
         } else {
-          appendBotResponse(result);
+          appendBotResponse(payload);
+          saveMessageToActiveChat('assistant', payload.summary, payload);
         }
         assessorLoading = false;
         setInputDisabled(false);
@@ -2013,6 +3288,7 @@
       // Esborrar la memòria cau local perquè no quedi informació de l'usuari
       localStorage.removeItem('smartprice_pressupost');
       localStorage.removeItem('smartprice_metes');
+      localStorage.removeItem('smartprice_ai_state');
       
       // Recarregar la pàgina per netejar completament l'aplicació i les variables
       window.location.reload();
