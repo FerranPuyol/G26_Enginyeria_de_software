@@ -1272,10 +1272,11 @@
               <input
                 type="number"
                 min="0"
+                max="99999"
                 step="any"
                 value="${d.import}"
                 placeholder="0"
-                oninput="validarNegatiu(this,'error-despesa-${d.id}');actualitzarImportDespesa(${d.id}, this.value)"
+                oninput="validarPressupost(this);validarNegatiu(this,'error-despesa-${d.id}');actualitzarImportDespesa(${d.id}, this.value)"
                 class="w-full h-11 rounded-xl border-2 border-red-100 bg-red-50/30 pl-7 pr-3 font-body text-sm text-ink placeholder-red-300 focus:outline-none focus:border-red-300 focus:bg-white transition-colors"
               />
             </div>
@@ -1344,6 +1345,7 @@
     }
 
     window.MAX_INGRESSOS = 999999999;
+    window.MAX_PRESSUPOST = 99999;
 
     window.validarIngressos = function(input) {
       const val = parseFloat(input.value);
@@ -1362,12 +1364,26 @@
       }
     };
 
+    window.validarPressupost = function(input) {
+      const val = parseFloat(input.value);
+      if (!isNaN(val) && val > window.MAX_PRESSUPOST) {
+        input.value = window.MAX_PRESSUPOST;
+        input.style.borderColor = '#ef4444';
+        setTimeout(() => {
+          input.style.borderColor = '';
+        }, 3000);
+      }
+    };
+
     function teCampsNegatius() {
       const ingressos = parseFloat(document.getElementById('ingressos-nets').value);
       if (!isNaN(ingressos) && (ingressos < 0 || ingressos > window.MAX_INGRESSOS)) return true;
       const meta = parseFloat(document.getElementById('meta-estalvi').value);
-      if (!isNaN(meta) && meta < 0) return true;
-      return despesesDades.some(d => { const v = parseFloat(d.import); return !isNaN(v) && v < 0; });
+      if (!isNaN(meta) && (meta < 0 || meta > window.MAX_PRESSUPOST)) return true;
+      return despesesDades.some(d => {
+        const v = parseFloat(d.import);
+        return !isNaN(v) && (v < 0 || v > window.MAX_PRESSUPOST);
+      });
     }
 
     function actualitzarNomDespesa(id, val) {
