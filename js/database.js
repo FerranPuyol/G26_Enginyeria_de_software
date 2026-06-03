@@ -8,8 +8,8 @@
 //    · "Project URL"  →  SUPABASE_URL
 //    · "anon / public" →  SUPABASE_ANON_KEY
 
-const SUPABASE_URL      = 'https://wbdkshqhptozqgadpegr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_83EqeeS5waVSwJvxrJoBCw_m0G3ebH1';
+const SUPABASE_URL      = 'https://rpvsnpgnsdndkqwayxsi.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_3fuPPcO9R9KgotC1zmeGUg_woUcmarS';
 
 // ─── Inicialització del client ───────────────────────────────────────────────
 const { createClient } = window.supabase;

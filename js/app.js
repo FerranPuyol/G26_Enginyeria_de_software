@@ -1342,8 +1342,17 @@
           updatedAt: folder.updatedAt,
         });
       } catch (err) {
-        console.error('Error guardant carpeta AI:', err);
-        showGlobalToast('No s\'ha pogut desar la carpeta al servidor.', true);
+        console.error('[AI STORAGE ERROR]', {
+          context: 'persistFolder',
+          error: err,
+          message: err?.message,
+          details: err?.details,
+          hint: err?.hint,
+          code: err?.code,
+        });
+        if (err?.code !== '42P01' && !(err?.message || '').includes('does not exist')) {
+          showGlobalToast('No s\'ha pogut desar la carpeta al servidor.', true);
+        }
       }
     }
 
@@ -1353,8 +1362,17 @@
       try {
         await dbUpsertAIChat({ userId: user.id, id: chat.id, folderId: chat.folderId, title: chat.title, createdAt: chat.createdAt, updatedAt: chat.updatedAt });
       } catch (err) {
-        console.error('Error guardant xat AI:', err);
-        showGlobalToast('No s\'ha pogut desar el xat al servidor.', true);
+        console.error('[AI STORAGE ERROR]', {
+          context: 'persistChat',
+          error: err,
+          message: err?.message,
+          details: err?.details,
+          hint: err?.hint,
+          code: err?.code,
+        });
+        if (err?.code !== '42P01' && !(err?.message || '').includes('does not exist')) {
+          showGlobalToast('No s\'ha pogut desar el xat al servidor.', true);
+        }
       }
     }
 
@@ -1391,8 +1409,18 @@
         await dbCreateAIMessage({ userId: user.id, chatId: chat.id, role: message.role, content: message.content, meta: message.meta });
         await dbUpdateAIChat(chat.id, { updated_at: chat.updatedAt });
       } catch (err) {
-        console.error('Error guardant missatge AI:', err);
-        showGlobalToast('No s\'ha pogut desar el missatge al servidor.', true);
+        console.error('[AI STORAGE ERROR]', {
+          context: 'persistMessage',
+          error: err,
+          message: err?.message,
+          details: err?.details,
+          hint: err?.hint,
+          code: err?.code,
+        });
+        // Només mostrem toast si no és un error de taula inexistent (ja es mostra a initAssessor)
+        if (err?.code !== '42P01' && !(err?.message || '').includes('does not exist')) {
+          showGlobalToast('No s\'ha pogut desar el missatge al servidor.', true);
+        }
       }
     }
 
@@ -1422,6 +1450,7 @@
           badge: opt.badge || '',
           description: opt.description || '',
           priceLabel: opt.priceLabel || '',
+          price: opt.price ?? null,
           details: opt.details || '',
         })) : [],
         tip: data.tip || '',
@@ -1455,11 +1484,27 @@
           renderAssessorState(state);
           return;
         } catch (err) {
-          console.error('Error carregant AI state des de Supabase:', err);
-          showGlobalToast('No s\'ha pogut carregar les converses des del servidor.', true);
+          console.error('[AI STORAGE ERROR]', {
+            context: 'initAssessor / loadAIStateFromSupabase',
+            error: err,
+            message: err?.message,
+            details: err?.details,
+            hint: err?.hint,
+            code: err?.code,
+          });
+          // Si l'error és per taules inexistents (42P01) mostrem un toast específic
+          // Altrament, intentem continuar amb l'estat local
+          const isTableMissing = err?.code === '42P01' || (err?.message || '').includes('does not exist');
+          if (isTableMissing) {
+            showGlobalToast('Configuració de la base de dades incompleta. Contacta amb l\'administrador.', true);
+          } else {
+            showGlobalToast('No s\'han pogut carregar les converses del servidor.', true);
+          }
+          // Fall through to localStorage
         }
       }
 
+      // Sense sessió o amb error: usar localStorage (o crear estat per defecte)
       const state = getAIState();
       if (state.folders.length === 0 || state.chats.length === 0) {
         const fresh = createDefaultAssessorState();
@@ -2426,6 +2471,17 @@
           ? `<span class="inline-block font-display font-700 text-xs px-2 py-0.5 rounded-full border ${badgeClass} mb-1.5">${escapeHtml(opt.badge)}</span>`
           : '';
         const isFirst = i === 0;
+        // Build shortcut button only if a price is known and it's a monthly service
+        const hasPrice = opt.price !== null && opt.price !== undefined && opt.price > 0;
+        const shortcutBtn = hasPrice
+          ? `<button
+               type="button"
+               onclick="addAIMonthlyExpenseShortcut(${JSON.stringify({ name: opt.name, amount: opt.price, priceLabel: opt.priceLabel || (opt.price + '€/mes'), category: data.category || 'Subscripcions' }).replace(/"/g, '&quot;')})"
+               class="mt-2 w-full rounded-xl border border-brand-200 bg-brand-50 hover:bg-brand-100 text-brand-700 font-display font-700 text-xs px-3 py-2 flex items-center justify-center gap-1.5 transition-colors">
+               <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+               Afegir al pressupost
+             </button>`
+          : '';
         return `
           <div class="rounded-xl border ${isFirst ? 'border-brand-300 bg-brand-50/60' : 'border-ink-muted/10 bg-white'} p-3">
             ${badgeHTML}
@@ -2435,6 +2491,7 @@
             </div>
             <p class="font-body text-xs text-ink-muted mt-1 leading-relaxed">${escapeHtml(opt.description)}</p>
             ${opt.details ? `<p class="font-body text-xs text-ink-muted/60 mt-1">${escapeHtml(opt.details)}</p>` : ''}
+            ${shortcutBtn}
           </div>`;
       }).join('');
 
@@ -2482,6 +2539,152 @@
         </div>`;
       container.appendChild(div);
       scrollChatToBottom();
+    }
+
+    // ══════════════════════════════════════════════
+    //  ACCESSOS DIRECTES IA → PRESSUPOST
+    // ══════════════════════════════════════════════
+
+    /**
+     * Punt d'entrada quan l'usuari clica "Afegir al pressupost" en una opció del xat.
+     * expenseData = { name, amount, priceLabel, category }
+     */
+    async function addAIMonthlyExpenseShortcut(expenseData) {
+      const user = await dbGetUser();
+
+      if (!user) {
+        // Sense sessió → modal informatiu
+        openAIExpenseInfoModal({
+          title: 'Inicia sessió primer',
+          body: 'Has d\'iniciar sessió per afegir despeses al teu pressupost.',
+          btnText: 'Anar a l\'inici de sessió',
+          onConfirm: () => showView('login'),
+        });
+        return;
+      }
+
+      // Amb sessió → modal de confirmació
+      confirmAddMonthlyExpenseModal(expenseData);
+    }
+
+    /**
+     * Modal de confirmació amb detalls de la despesa.
+     */
+    function confirmAddMonthlyExpenseModal(expenseData) {
+      const root = document.getElementById('ai-modal-root');
+      if (!root) return;
+      closeAIModal();
+
+      const priceStr = expenseData.priceLabel || (expenseData.amount + '€/mes');
+      const category = expenseData.category || 'Subscripcions';
+
+      root.classList.remove('hidden');
+      root.innerHTML = `
+        <div class="ai-modal-card bg-white rounded-3xl shadow-2xl ring-1 ring-slate-200 w-full max-w-md mx-auto overflow-hidden">
+          <div class="px-6 py-6 border-b border-slate-200">
+            <p class="font-display font-800 text-xl text-ink mb-1">Afegir despesa fixa mensual</p>
+            <p class="font-body text-sm text-ink-muted">Vols afegir aquesta despesa al teu pressupost?</p>
+          </div>
+          <div class="px-6 py-5 bg-surface space-y-3">
+            <div class="rounded-2xl border border-brand-200 bg-brand-50 p-4 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-display font-700 text-xs text-ink-muted uppercase tracking-wide">Nom</span>
+                <span class="font-display font-700 text-sm text-ink">${escapeHtml(expenseData.name)}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-display font-700 text-xs text-ink-muted uppercase tracking-wide">Import</span>
+                <span class="font-display font-800 text-sm text-brand-600">${escapeHtml(priceStr)}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-display font-700 text-xs text-ink-muted uppercase tracking-wide">Categoria</span>
+                <span class="font-display font-700 text-sm text-ink-muted">${escapeHtml(category)}</span>
+              </div>
+            </div>
+            <p class="font-body text-xs text-ink-muted/70">S'afegirà com a despesa fixa al formulari de pressupost actual. Podràs editar-la o eliminar-la des de la secció Pressupost.</p>
+          </div>
+          <div class="px-6 py-5 bg-white flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3">
+            <button id="ai-modal-cancel" class="w-full sm:w-auto rounded-2xl border border-ink-muted/15 bg-surface px-4 py-3 text-sm font-semibold text-ink-muted hover:border-brand-300">Cancel·lar</button>
+            <button id="ai-modal-confirm" class="w-full sm:w-auto rounded-2xl px-4 py-3 text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700">Afegir despesa</button>
+          </div>
+        </div>`;
+
+      const cancelBtn = document.getElementById('ai-modal-cancel');
+      const confirmBtn = document.getElementById('ai-modal-confirm');
+      setTimeout(() => root.classList.add('ai-modal-visible'), 10);
+
+      cancelBtn.onclick = closeAIModal;
+      confirmBtn.onclick = () => {
+        closeAIModal();
+        createMonthlyExpenseUsingExistingBudgetSystem(expenseData);
+      };
+      root.onclick = event => { if (event.target === root) closeAIModal(); };
+      _aiModalKeyHandler = event => {
+        if (event.key === 'Escape') closeAIModal();
+        if (event.key === 'Enter') { event.preventDefault(); closeAIModal(); createMonthlyExpenseUsingExistingBudgetSystem(expenseData); }
+      };
+      document.addEventListener('keydown', _aiModalKeyHandler);
+    }
+
+    /**
+     * Crea la despesa reutilitzant el sistema existent de despesesDades + renderDespeses.
+     * NO modifica la lògica de pressupost, simplement afegeix una entrada com faria l'usuari manualment.
+     */
+    function createMonthlyExpenseUsingExistingBudgetSystem(expenseData) {
+      // Usem el mateix format que despesesDades: { id, nom, import }
+      const nouId = Date.now();
+      despesesDades.push({
+        id: nouId,
+        nom: expenseData.name,
+        import: String(expenseData.amount),
+      });
+
+      // Renderitzem la llista (igual que afegirDespesa() i renderDespeses())
+      renderDespeses();
+
+      // Mostrem modal d'èxit amb botons de navegació
+      openAIExpenseInfoModal({
+        title: 'Despesa afegida! ✓',
+        body: `"${expenseData.name}" s'ha afegit correctament al teu pressupost com a despesa fixa mensual.`,
+        btnText: 'Veure pressupost',
+        onConfirm: () => showView('pressupost'),
+        secondaryBtnText: 'Continuar parlant',
+        onSecondary: () => { /* simplement tanquem */ },
+      });
+    }
+
+    /**
+     * Modal informatiu genèric per a l'assessor (sense input).
+     */
+    function openAIExpenseInfoModal({ title, body, btnText, onConfirm, secondaryBtnText, onSecondary }) {
+      const root = document.getElementById('ai-modal-root');
+      if (!root) return;
+      closeAIModal();
+      root.classList.remove('hidden');
+
+      const secondaryHTML = secondaryBtnText
+        ? `<button id="ai-expense-secondary" class="w-full sm:w-auto rounded-2xl border border-ink-muted/15 bg-surface px-4 py-3 text-sm font-semibold text-ink-muted hover:border-brand-300">${escapeHtml(secondaryBtnText)}</button>`
+        : '';
+
+      root.innerHTML = `
+        <div class="ai-modal-card bg-white rounded-3xl shadow-2xl ring-1 ring-slate-200 w-full max-w-md mx-auto overflow-hidden">
+          <div class="px-6 py-6 border-b border-slate-200">
+            <p class="font-display font-800 text-xl text-ink mb-1">${escapeHtml(title)}</p>
+            <p class="font-body text-sm text-ink-muted">${escapeHtml(body)}</p>
+          </div>
+          <div class="px-6 py-5 bg-white flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3">
+            ${secondaryHTML}
+            <button id="ai-expense-confirm" class="w-full sm:w-auto rounded-2xl px-4 py-3 text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700">${escapeHtml(btnText)}</button>
+          </div>
+        </div>`;
+
+      setTimeout(() => root.classList.add('ai-modal-visible'), 10);
+      const confirmBtn = document.getElementById('ai-expense-confirm');
+      const secondaryBtn = document.getElementById('ai-expense-secondary');
+      if (confirmBtn) confirmBtn.onclick = () => { closeAIModal(); onConfirm && onConfirm(); };
+      if (secondaryBtn) secondaryBtn.onclick = () => { closeAIModal(); onSecondary && onSecondary(); };
+      root.onclick = event => { if (event.target === root) closeAIModal(); };
+      _aiModalKeyHandler = event => { if (event.key === 'Escape') closeAIModal(); };
+      document.addEventListener('keydown', _aiModalKeyHandler);
     }
 
     function escapeHtml(str) {
