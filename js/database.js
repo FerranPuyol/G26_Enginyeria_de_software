@@ -113,11 +113,15 @@ async function dbSavePressupost({ ingressos, metaEstalvi, despeses, totalDespese
 
 // Retorna tots els pressupostos de l'usuari autenticat, del més recent al més antic.
 async function dbGetPressupostos() {
+  const user = await dbGetUser();
+  if (!user) return [];
+
   const tableName = await resolvePressupostTableName();
 
   const { data, error } = await dbClient
     .from(tableName)
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -126,11 +130,15 @@ async function dbGetPressupostos() {
 
 // Retorna l'últim pressupost guardat (o null si no n'hi ha cap).
 async function dbGetLastPressupost() {
+  const user = await dbGetUser();
+  if (!user) return null;
+
   const tableName = await resolvePressupostTableName();
 
   const { data, error } = await dbClient
     .from(tableName)
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -142,12 +150,16 @@ async function dbGetLastPressupost() {
 
 // Elimina un pressupost de l'usuari autenticat.
 async function dbDeletePressupost(id) {
+  const user = await dbGetUser();
+  if (!user) throw new Error('Cal iniciar sessió.');
+
   const tableName = await resolvePressupostTableName();
 
   const { error } = await dbClient
     .from(tableName)
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id);
   if (error) throw error;
 }
 
