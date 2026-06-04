@@ -4074,10 +4074,31 @@
     let chartEvolucioInstancia = null;
 
     async function initDashboard() {
-      // 1. KPI: Total Estalviat (Metes actuals)
+      // 1. KPI: Total Estalviat (basat en pressupostos avaluats positivament)
       const metes = JSON.parse(localStorage.getItem('smartprice_metes') || '[]');
-      const totalEstalviat = metes.reduce((acc, m) => acc + m.actual, 0);
-      document.getElementById('dash-estalvi-total').textContent = fmt(totalEstalviat);
+      const totalEstalviatMetes = metes.reduce((acc, m) => acc + m.actual, 0);
+
+      const user = await dbGetUser();
+      let history = [];
+      let evaluations = [];
+      try {
+        history = await dbGetPressupostos();
+        evaluations = await dbGetAvaluacions();
+      } catch (err) {
+        history = JSON.parse(localStorage.getItem(`smartprice_pressupostos:${user?.id || 'guest'}`) || '[]');
+        evaluations = JSON.parse(localStorage.getItem('smartprice_avaluacions') || '[]');
+      }
+
+      const evaluacionsPerPressupost = new Map(evaluations.map(ev => [ev.pressupost_id, ev]));
+      const totalEstalviat = history.reduce((acc, p) => {
+        const avaluacio = evaluacionsPerPressupost.get(p.id);
+        if (!avaluacio || !avaluacio.ha_estalviat) return acc;
+
+        const estalviReal = Number(p.meta_estalvi || 0);
+        return acc + (Number.isFinite(estalviReal) ? estalviReal : 0);
+      }, 0);
+
+      document.getElementById('dash-estalvi-total').textContent = fmt(totalEstalviat || totalEstalviatMetes);
 
       // Metes KPI
       const metesCompletades = metes.filter(m => m.actual >= m.cost).length;
@@ -4127,15 +4148,13 @@
 
       // 3. Evolució de l'estalvi (Historial)
       try {
-        const history = await dbGetPressupostos();
         document.getElementById('dash-mesos').textContent = history.length;
-        if (history.length < 2) {
+        if (history.length === 0) {
           document.getElementById('dash-no-historial').classList.remove('hidden');
         } else {
           document.getElementById('dash-no-historial').classList.add('hidden');
-          // Ordenem històric per data ascendent per pintar el gràfic de línies
-          history.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-          renderEvolChart(history);
+          history.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+          renderEvolChart(history, evaluacionsPerPressupost);
         }
       } catch (err) {
         document.getElementById('dash-mesos').textContent = '0';
@@ -4172,7 +4191,7 @@
       });
     }
 
-    function renderEvolChart(history) {
+    function renderEvolChart(history, evaluacionsPerPressupost) {
       const ctx = document.getElementById('chart-evolucio').getContext('2d');
       if (chartEvolucioInstancia) chartEvolucioInstancia.destroy();
 
@@ -4180,26 +4199,38 @@
         const d = new Date(h.created_at);
         return d.toLocaleDateString('ca-ES', { month: 'short', day: 'numeric' });
       });
-      
-      const dataIngressos = history.map(h => h.ingressos || 0);
-      const dataDespeses = history.map(h => h.total_despeses || 0);
+
+      let totalAcumulat = 0;
+      const dataEstalviAcumulat = history.map(h => {
+        const avaluacio = evaluacionsPerPressupost.get(h.id);
+        const valor = (avaluacio && avaluacio.ha_estalviat) ? (h.balanc || 0) : 0;
+        totalAcumulat += valor;
+        return totalAcumulat;
+      });
+      const dataBalanç = history.map(h => h.balanc || 0);
 
       chartEvolucioInstancia = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
-          labels: labels,
+          labels,
           datasets: [
             {
-              label: 'Ingressos',
-              data: dataIngressos,
-              backgroundColor: '#10b981', // Verd brand
-              borderRadius: 4
+              label: 'Estalvi acumulat',
+              data: dataEstalviAcumulat,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              fill: true,
+              tension: 0.35,
+              pointRadius: 4
             },
             {
-              label: 'Despeses',
-              data: dataDespeses,
-              backgroundColor: '#ef4444', // Vermell alert
-              borderRadius: 4
+              label: 'Balanç del mes',
+              data: dataBalanç,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.12)',
+              fill: false,
+              tension: 0.25,
+              pointRadius: 3
             }
           ]
         },
