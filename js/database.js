@@ -290,42 +290,105 @@ async function dbSaveAvaluacio({ pressupostId, haEstalviat, faltaImport, motiu }
   const user = await dbGetUser();
   if (!user) throw new Error('Cal iniciar sessió.');
 
-  const { data, error } = await dbClient
-    .from('avaluacions')
-    .insert({
-      pressupost_id: pressupostId,
-      user_id:       user.id,
-      ha_estalviat:  haEstalviat,
-      falta_import:  faltaImport || null,
-      motiu:         motiu || null,
-    })
-    .select()
-    .single();
+  try {
+    const { data, error } = await dbClient
+      .from('avaluacions')
+      .insert({
+        pressupost_id: pressupostId,
+        user_id:       user.id,
+        ha_estalviat:  haEstalviat,
+        falta_import:  faltaImport || null,
+        motiu:         motiu || null,
+      })
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      if (isMissingBudgetTableError(error)) {
+        const fallback = {
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+          pressupost_id: pressupostId,
+          user_id: user.id,
+          ha_estalviat: haEstalviat,
+          falta_import: faltaImport || null,
+          motiu: motiu || null,
+          created_at: new Date().toISOString(),
+        };
+        const items = JSON.parse(localStorage.getItem('smartprice_avaluacions') || '[]');
+        localStorage.setItem('smartprice_avaluacions', JSON.stringify([fallback, ...items]));
+        return fallback;
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    if (isMissingBudgetTableError(error)) {
+      const fallback = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        pressupost_id: pressupostId,
+        user_id: user.id,
+        ha_estalviat: haEstalviat,
+        falta_import: faltaImport || null,
+        motiu: motiu || null,
+        created_at: new Date().toISOString(),
+      };
+      const items = JSON.parse(localStorage.getItem('smartprice_avaluacions') || '[]');
+      localStorage.setItem('smartprice_avaluacions', JSON.stringify([fallback, ...items]));
+      return fallback;
+    }
+    throw error;
+  }
 }
 
 // Retorna l'avaluació d'un pressupost concret (o null si no n'hi ha).
 async function dbGetAvaluacioByPressupost(pressupostId) {
-  const { data, error } = await dbClient
-    .from('avaluacions')
-    .select('*')
-    .eq('pressupost_id', pressupostId)
-    .maybeSingle();
+  try {
+    const { data, error } = await dbClient
+      .from('avaluacions')
+      .select('*')
+      .eq('pressupost_id', pressupostId)
+      .maybeSingle();
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      if (isMissingBudgetTableError(error)) {
+        const items = JSON.parse(localStorage.getItem('smartprice_avaluacions') || '[]');
+        return items.find(item => item.pressupost_id === pressupostId) || null;
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    if (isMissingBudgetTableError(error)) {
+      const items = JSON.parse(localStorage.getItem('smartprice_avaluacions') || '[]');
+      return items.find(item => item.pressupost_id === pressupostId) || null;
+    }
+    throw error;
+  }
 }
 
 // Retorna totes les avaluacions de l'usuari.
 async function dbGetAvaluacions() {
-  const { data, error } = await dbClient
-    .from('avaluacions')
-    .select('*');
+  try {
+    const { data, error } = await dbClient
+      .from('avaluacions')
+      .select('*');
 
-  if (error) throw error;
-  return data || [];
+    if (error) {
+      if (isMissingBudgetTableError(error)) {
+        return JSON.parse(localStorage.getItem('smartprice_avaluacions') || '[]');
+      }
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    if (isMissingBudgetTableError(error)) {
+      return JSON.parse(localStorage.getItem('smartprice_avaluacions') || '[]');
+    }
+    throw error;
+  }
 }
 
 
