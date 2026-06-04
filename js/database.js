@@ -56,13 +56,43 @@ async function dbGetUser() {
 //  PRESSUPOSTOS
 // ═══════════════════════════════════════════════════════════════════════════
 
+let _pressupostTableName = null;
+
+async function resolvePressupostTableName() {
+  if (_pressupostTableName) return _pressupostTableName;
+
+  const candidates = ['pressupostos', 'presspostos'];
+
+  for (const tableName of candidates) {
+    try {
+      const { error } = await dbClient
+        .from(tableName)
+        .select('id')
+        .limit(1);
+
+      if (!error) {
+        _pressupostTableName = tableName;
+        return tableName;
+      }
+    } catch (_) {
+      // Ignora errors temporals i prova la següent candidata.
+    }
+  }
+
+  // Fallback conservador si no es pot detectar la taula real.
+  _pressupostTableName = candidates[0];
+  return _pressupostTableName;
+}
+
 // Guarda un nou pressupost per a l'usuari autenticat (amb nom, mes i any).
 async function dbSavePressupost({ ingressos, metaEstalvi, despeses, totalDespeses, balanc, nom, mes, year }) {
   const user = await dbGetUser();
   if (!user) throw new Error('Cal iniciar sessió per guardar el pressupost.');
 
+  const tableName = await resolvePressupostTableName();
+
   const { data, error } = await dbClient
-    .from('pressupostos')
+    .from(tableName)
     .insert({
       user_id:        user.id,
       ingressos,
@@ -83,8 +113,10 @@ async function dbSavePressupost({ ingressos, metaEstalvi, despeses, totalDespese
 
 // Retorna tots els pressupostos de l'usuari autenticat, del més recent al més antic.
 async function dbGetPressupostos() {
+  const tableName = await resolvePressupostTableName();
+
   const { data, error } = await dbClient
-    .from('pressupostos')
+    .from(tableName)
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -94,8 +126,10 @@ async function dbGetPressupostos() {
 
 // Retorna l'últim pressupost guardat (o null si no n'hi ha cap).
 async function dbGetLastPressupost() {
+  const tableName = await resolvePressupostTableName();
+
   const { data, error } = await dbClient
-    .from('pressupostos')
+    .from(tableName)
     .select('*')
     .order('created_at', { ascending: false })
     .limit(1)
@@ -108,8 +142,10 @@ async function dbGetLastPressupost() {
 
 // Elimina un pressupost de l'usuari autenticat.
 async function dbDeletePressupost(id) {
+  const tableName = await resolvePressupostTableName();
+
   const { error } = await dbClient
-    .from('pressupostos')
+    .from(tableName)
     .delete()
     .eq('id', id);
   if (error) throw error;
