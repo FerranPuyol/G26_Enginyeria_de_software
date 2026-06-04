@@ -10,6 +10,7 @@
 
 const SUPABASE_URL      = 'https://rpvsnpgnsdndkqwayxsi.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_3fuPPcO9R9KgotC1zmeGUg_woUcmarS';
+const LOCAL_PRESSUPOSTS_KEY = 'smartprice_pressupostos';
 
 // ─── Inicialització del client ───────────────────────────────────────────────
 const { createClient } = window.supabase;
@@ -58,6 +59,28 @@ async function dbGetUser() {
 
 let _pressupostTableName = null;
 
+function getLocalPressupostosKey(userId) {
+  return `${LOCAL_PRESSUPOSTS_KEY}:${userId || 'guest'}`;
+}
+
+function readLocalPressupostos(userId) {
+  try {
+    const raw = localStorage.getItem(getLocalPressupostosKey(userId));
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function writeLocalPressupostos(userId, items) {
+  localStorage.setItem(getLocalPressupostosKey(userId), JSON.stringify(items));
+}
+
+function isMissingBudgetTableError(error) {
+  const msg = (error && (error.message || error.details || '')) + '';
+  return /could not find the table|schema cache|relation .* does not exist|does not exist in the schema cache/i.test(msg);
+}
+
 async function resolvePressupostTableName() {
   if (_pressupostTableName) return _pressupostTableName;
 
@@ -91,24 +114,67 @@ async function dbSavePressupost({ ingressos, metaEstalvi, despeses, totalDespese
 
   const tableName = await resolvePressupostTableName();
 
-  const { data, error } = await dbClient
-    .from(tableName)
-    .insert({
-      user_id:        user.id,
-      ingressos,
-      meta_estalvi:   metaEstalvi,
-      despeses,
-      total_despeses: totalDespeses,
-      balanc,
-      nom:            nom || null,
-      mes:            mes || null,
-      year:           year || null,
-    })
-    .select()
-    .single();
+  try {
+    const { data, error } = await dbClient
+      .from(tableName)
+      .insert({
+        user_id:        user.id,
+        ingressos,
+        meta_estalvi:   metaEstalvi,
+        despeses,
+        total_despeses: totalDespeses,
+        balanc,
+        nom:            nom || null,
+        mes:            mes || null,
+        year:           year || null,
+      })
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      if (isMissingBudgetTableError(error)) {
+        const fallback = {
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+          user_id: user.id,
+          ingressos,
+          meta_estalvi: metaEstalvi,
+          despeses,
+          total_despeses: totalDespeses,
+          balanc,
+          nom: nom || null,
+          mes: mes || null,
+          year: year || null,
+          created_at: new Date().toISOString(),
+        };
+        const items = readLocalPressupostos(user.id);
+        writeLocalPressupostos(user.id, [fallback, ...items]);
+        return fallback;
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    if (isMissingBudgetTableError(error)) {
+      const fallback = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        user_id: user.id,
+        ingressos,
+        meta_estalvi: metaEstalvi,
+        despeses,
+        total_despeses: totalDespeses,
+        balanc,
+        nom: nom || null,
+        mes: mes || null,
+        year: year || null,
+        created_at: new Date().toISOString(),
+      };
+      const items = readLocalPressupostos(user.id);
+      writeLocalPressupostos(user.id, [fallback, ...items]);
+      return fallback;
+    }
+    throw error;
+  }
 }
 
 // Retorna tots els pressupostos de l'usuari autenticat, del més recent al més antic.
@@ -118,14 +184,27 @@ async function dbGetPressupostos() {
 
   const tableName = await resolvePressupostTableName();
 
-  const { data, error } = await dbClient
-    .from(tableName)
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await dbClient
+      .from(tableName)
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
-  return data || [];
+    if (error) {
+      if (isMissingBudgetTableError(error)) {
+        return readLocalPressupostos(user.id);
+      }
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    if (isMissingBudgetTableError(error)) {
+      return readLocalPressupostos(user.id);
+    }
+    throw error;
+  }
 }
 
 // Retorna l'últim pressupost guardat (o null si no n'hi ha cap).
@@ -135,16 +214,31 @@ async function dbGetLastPressupost() {
 
   const tableName = await resolvePressupostTableName();
 
-  const { data, error } = await dbClient
-    .from(tableName)
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  try {
+    const { data, error } = await dbClient
+      .from(tableName)
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      if (isMissingBudgetTableError(error)) {
+        const items = readLocalPressupostos(user.id);
+        return items[0] || null;
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    if (isMissingBudgetTableError(error)) {
+      const items = readLocalPressupostos(user.id);
+      return items[0] || null;
+    }
+    throw error;
+  }
 }
 
 
@@ -155,12 +249,29 @@ async function dbDeletePressupost(id) {
 
   const tableName = await resolvePressupostTableName();
 
-  const { error } = await dbClient
-    .from(tableName)
-    .delete()
-    .eq('id', id)
-    .eq('user_id', user.id);
-  if (error) throw error;
+  try {
+    const { error } = await dbClient
+      .from(tableName)
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      if (isMissingBudgetTableError(error)) {
+        const items = readLocalPressupostos(user.id).filter(item => item.id !== id);
+        writeLocalPressupostos(user.id, items);
+        return;
+      }
+      throw error;
+    }
+  } catch (error) {
+    if (isMissingBudgetTableError(error)) {
+      const items = readLocalPressupostos(user.id).filter(item => item.id !== id);
+      writeLocalPressupostos(user.id, items);
+      return;
+    }
+    throw error;
+  }
 }
 
 // Retorna estadístiques públiques agregades (sense dades individuals).

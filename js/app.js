@@ -3588,6 +3588,19 @@
     //  MÒDUL HISTORIAL
     // ══════════════════════════════════════════════
 
+    function getLocalPressupostosKey(userId) {
+      return `smartprice_pressupostos:${userId || 'guest'}`;
+    }
+
+    function carregarPressupostosLocal(userId) {
+      try {
+        const raw = localStorage.getItem(getLocalPressupostosKey(userId));
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
     async function initHistorial() {
       const elNoAuth  = document.getElementById('historial-no-auth');
       const elLoading = document.getElementById('historial-loading');
@@ -3603,21 +3616,35 @@
       elLoading && elLoading.classList.remove('hidden');
 
       try {
-        const pressupostos = await dbGetPressupostos();
+        let pressupostos = [];
+        try {
+          pressupostos = await dbGetPressupostos();
+        } catch (err) {
+          pressupostos = carregarPressupostosLocal(user.id);
+        }
+
         elLoading && elLoading.classList.add('hidden');
 
-        if (!pressupostos.length) { elEmpty && elEmpty.classList.remove('hidden'); return; }
+        if (!pressupostos.length) {
+          elEmpty && elEmpty.classList.remove('hidden');
+          return;
+        }
 
         elList.innerHTML = '';
         for (const p of pressupostos) {
-          const avaluacio = await dbGetAvaluacioByPressupost(p.id);
+          let avaluacio = null;
+          try {
+            avaluacio = await dbGetAvaluacioByPressupost(p.id);
+          } catch (_) {
+            avaluacio = null;
+          }
           elList.appendChild(crearTarjetaHistorial(p, avaluacio));
         }
         elList.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
       } catch (err) {
         elLoading && elLoading.classList.add('hidden');
-        showGlobalToast('Error carregant historial: ' + err.message, true);
+        elEmpty && elEmpty.classList.remove('hidden');
       }
     }
 
